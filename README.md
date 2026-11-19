@@ -11,6 +11,7 @@ The team dashboard served at growth.vividcentre.com.
 There are no secrets in this repository. Only a one-way hash of the access code is kept, in Supabase
 (`app_settings.access_code_hash`), and the server checks the code on every request.
 The endpoint returns totals, plus a list of the 50 most recent Mangomint events for the Webhooks page
-(event, service or item, provider, amount). Client names never reach the browser.
+(event, client name, service or item, provider, amount). Client names appear only on that page;
+emails, phone numbers and other contact details never reach the browser.
 
 To change the goals (150 members, 40% conversion), edit the constants at the top of `app.js`.

@@ -743,7 +743,7 @@
     const s = dash.data('webhooks');
     const note = (text) => {
       const tr = document.createElement('tr'), td = document.createElement('td');
-      td.colSpan = 5; td.className = 'vg-hook-empty'; td.textContent = text; tr.append(td);
+      td.colSpan = 6; td.className = 'vg-hook-empty'; td.textContent = text; tr.append(td);
       return tr;
     };
     if (s.status !== 'ok') { tbody.replaceChildren(note(s.status === 'loading' ? 'Loading…' : 'The event list could not be loaded. Press Refresh to try again.')); return; }
@@ -763,6 +763,7 @@
         .filter(Boolean).join(' · ');
       cell(stamp(new Date(r.received_at)));
       cell(hookName(r));
+      cell(r.client);
       cell(r.items, sub);
       cell(r.provider);
       cell(r.amount == null || isNaN(+r.amount) ? null : cents(+r.amount));

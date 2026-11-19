@@ -99,19 +99,20 @@
   .vg-table th:first-child, .vg-table td:first-child { text-align: left; padding-left: 0; }
   .vg-hooks th, .vg-hooks td { text-align: left; vertical-align: top; }
   .vg-hooks th:last-child, .vg-hooks td:last-child { text-align: right; padding-right: 0; }
-  .vg-hooks td:nth-child(3) { white-space: normal; min-width: 200px; line-height: 1.4; }
-  .vg-hooks td:first-child, .vg-hooks td:nth-child(4) { color: var(--color-fg-muted); }
+  .vg-hooks td:nth-child(4) { white-space: normal; min-width: 200px; line-height: 1.4; }
+  .vg-hooks td:first-child, .vg-hooks td:nth-child(5) { color: var(--color-fg-muted); }
   .vg-hooks .vg-hook-sub { display: block; color: var(--color-fg-muted); font-size: var(--cds-font-size-caption); }
   .vg-hooks td.vg-hook-empty { color: var(--color-fg-muted); white-space: normal; text-align: left; }
   @container (max-width: 600px) {
     .vg-hooks thead { display: none; }
     .vg-hooks tr { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 2px var(--cds-gap-md); padding: var(--cds-pad-md) 0; border-bottom: 1px solid var(--color-border-line); }
     .vg-hooks td { border: 0; padding: 0; white-space: normal; min-width: 0; }
-    .vg-hooks td:nth-child(2) { grid-area: 1 / 1; font-weight: var(--cds-font-weight-medium); }
-    .vg-hooks td:nth-child(5) { grid-area: 1 / 2; }
-    .vg-hooks td:nth-child(3) { grid-area: 2 / 1 / 3 / 3; min-width: 0; }
-    .vg-hooks td:nth-child(4) { grid-area: 3 / 1; font-size: var(--cds-font-size-caption); }
-    .vg-hooks td:first-child { grid-area: 3 / 2; font-size: var(--cds-font-size-caption); text-align: right; }
+    .vg-hooks td:nth-child(3) { grid-area: 1 / 1; font-weight: var(--cds-font-weight-medium); }
+    .vg-hooks td:nth-child(6) { grid-area: 1 / 2; }
+    .vg-hooks td:nth-child(2) { grid-area: 2 / 1 / 3 / 3; }
+    .vg-hooks td:nth-child(4) { grid-area: 3 / 1 / 4 / 3; min-width: 0; }
+    .vg-hooks td:nth-child(5) { grid-area: 4 / 1; font-size: var(--cds-font-size-caption); }
+    .vg-hooks td:first-child { grid-area: 4 / 2; font-size: var(--cds-font-size-caption); text-align: right; }
     .vg-hooks td.vg-hook-empty { grid-area: 1 / 1 / 2 / 3; text-align: left; font-size: inherit; }
   }
   .vg-details { color: var(--color-fg-muted); line-height: 1.5; }
@@ -514,6 +515,7 @@
           <thead><tr>
             <th data-field="received_at">Received</th>
             <th data-field="kind">Event</th>
+            <th data-field="client">Client</th>
             <th data-field="items">Details</th>
             <th data-field="provider">Provider</th>
             <th data-field="amount">Amount</th>
@@ -521,7 +523,7 @@
           <tbody data-draw="hook-rows"></tbody>
         </table>
       </div>
-      <p class="vg-note vg-wk-note">Newest first. Client names are not shown. The list updates every five minutes, or when you press Refresh.</p>
+      <p class="vg-note vg-wk-note">Newest first. The list updates every five minutes, or when you press Refresh.</p>
     </div>
   </section>
 
