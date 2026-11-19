@@ -340,7 +340,7 @@
   const WEEK_KPIS = [
     { label: 'New clients showed', bench: 'new_clients', val: (r) => +r.new_clients, fmt: int },
     { label: 'New clients with membership or package', bench: 'joined', val: (r) => +r.joined, fmt: int },
-    { label: 'Membership or package sales %', bench: 'conversion', val: (r) => (+r.new_clients ? (+r.joined / +r.new_clients) * 100 : null), fmt: (v) => Math.round(v) + '%' },
+    { label: 'Membership or package sales %', bench: 'conversion', val: (r) => (+r.new_clients ? (+r.joined / +r.new_clients) * 100 : 0), fmt: (v) => Math.round(v) + '%' }, // a week with no new clients counts as 0%, as on the team's sheet
     { label: 'Revenue', bench: 'revenue', val: (r) => +r.revenue, fmt: money },
   ];
   const weekBench = (k) => { const b = ((window.VG_GOALS || {}).weekly || {})[k.bench]; return b == null ? null : +b; };
