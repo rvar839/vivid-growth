@@ -345,7 +345,6 @@
     { key: 'revenue', label: 'Revenue', how: 'above', bench: 20000, basic: true, fmt: money, val: (w) => +w.revenue },
     { key: 'new_clients', label: 'New clients showed', how: 'above', bench: 4, basic: true, fmt: int, val: (w) => +w.new_clients },
     { key: 'conversion', label: 'New client membership/package sales %', how: 'above', bench: 40, basic: true, fmt: pctFmt, val: (w) => pctOf(w.joined, w.new_clients) ?? 0 }, // no new clients counts as 0%, as on the team's sheet
-    { key: 'joined', label: 'New clients with membership or package', how: 'above', bench: 2, basic: true, fmt: int, val: (w) => +w.joined },
     { key: 'rebook', label: 'Rebook rate', how: 'min', bench: 60, fmt: pctFmt, val: (w) => pctOf(w.visits_rebooked, w.visits) },
     { key: 'net_members', label: 'Net new members', how: 'min', bench: 3, fmt: (v) => (v > 0 ? '+' : v < 0 ? '−' : '') + int(Math.abs(v)), val: (w) => +w.membership_starts - +w.membership_cancels },
     { key: 'visits', label: 'Completed visits', how: 'min', bench: 65, fmt: int, val: (w) => +w.visits },
@@ -363,7 +362,7 @@
     { key: 'source_recorded', label: 'New clients with a source recorded', how: 'min', bench: 90, fmt: pctFmt, val: (w) => pctOf(w.new_clients_with_source, w.new_clients) },
     { key: 'online', label: 'Booked online', how: 'min', bench: 40, fmt: pctFmt, val: (w) => pctOf(w.visits_booked_online, w.visits) },
   ];
-  const REPORT_KEYS = ['new_clients', 'joined', 'conversion', 'revenue']; // the four on the KPI Report, in the team's order
+  const REPORT_KEYS = ['new_clients', 'conversion', 'revenue']; // the rows on the KPI Report, in the team's order
   const kpiBench = (k) => { const b = ((window.VG_GOALS || {}).weekly || {})[k.key]; return b != null ? +b : k.bench; }; // a saved benchmark wins over the default
   const kpiText = (k, b) => (b == null ? '—' : k.how === 'above' ? 'Above ' + k.fmt(b) : k.fmt(b) + (k.how === 'max' ? ' or less' : ' or more'));
   const kpiHit = (k, v, b) => (k.how === 'above' ? v > b : k.how === 'max' ? v <= b : v >= b);
