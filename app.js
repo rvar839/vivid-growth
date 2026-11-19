@@ -344,7 +344,7 @@
   const ALL_KPIS = [
     { key: 'revenue', label: 'Revenue', how: 'above', bench: 20000, basic: true, fmt: money, val: (w) => +w.revenue },
     { key: 'new_clients', label: 'New clients showed', how: 'above', bench: 4, basic: true, fmt: int, val: (w) => +w.new_clients },
-    { key: 'conversion', label: 'Membership or package sales %', how: 'above', bench: 40, basic: true, fmt: pctFmt, val: (w) => pctOf(w.joined, w.new_clients) ?? 0 }, // no new clients counts as 0%, as on the team's sheet
+    { key: 'conversion', label: 'New client membership/package sales %', how: 'above', bench: 40, basic: true, fmt: pctFmt, val: (w) => pctOf(w.joined, w.new_clients) ?? 0 }, // no new clients counts as 0%, as on the team's sheet
     { key: 'joined', label: 'New clients with membership or package', how: 'above', bench: 2, basic: true, fmt: int, val: (w) => +w.joined },
     { key: 'rebook', label: 'Rebook rate', how: 'min', bench: 60, fmt: pctFmt, val: (w) => pctOf(w.visits_rebooked, w.visits) },
     { key: 'net_members', label: 'Net new members', how: 'min', bench: 3, fmt: (v) => (v > 0 ? '+' : v < 0 ? '−' : '') + int(Math.abs(v)), val: (w) => +w.membership_starts - +w.membership_cancels },
