@@ -159,8 +159,13 @@
   .vg-wk thead th.vg-now { color: var(--color-fg); }
   .vg-wk-note { margin-top: var(--cds-gap-sm); }
   #chart-week-revenue { min-height: 300px; }
+  .vg-wk td.vg-rankcol { text-align: left; color: var(--color-fg-muted); font-size: var(--cds-font-size-caption); width: 2em; padding-left: 0; }
+  .vg-wk-ranked td.vg-val { font-size: var(--cds-font-size-body); }
+  .vg-wk-ranked th, .vg-wk-ranked td { padding-top: var(--cds-pad-sm); padding-bottom: var(--cds-pad-sm); }
+  .vg-wk-ranked tbody th, .vg-wk-ranked thead th:nth-child(2) { text-align: left; white-space: normal; padding-left: 0; }
+  .vg-wk-ranked tbody th { font-weight: var(--cds-font-weight-medium); min-width: 120px; }
   .vg-bench-under { display: block; font-weight: 400; font-size: var(--cds-font-size-caption); color: var(--color-fg-muted); }
-  @container (max-width: 620px) { .vg-wk th:first-child { min-width: 0; } .vg-wk th, .vg-wk td { padding: var(--cds-pad-md) var(--cds-pad-sm); } }
+  @container (max-width: 620px) { .vg-wk-ranked tbody th { min-width: 0; } .vg-wk-ranked th, .vg-wk-ranked td { padding-left: 4px; padding-right: 4px; } .vg-wk td.vg-rankcol { width: 1.4em; } .vg-wk th:first-child { min-width: 0; } .vg-wk th, .vg-wk td { padding: var(--cds-pad-md) var(--cds-pad-sm); } }
   .vg-goal { display: grid; grid-template-columns: minmax(130px, 1.3fr) minmax(90px, auto) minmax(110px, 1fr) minmax(80px, 1.4fr) 104px; align-items: center; gap: var(--cds-gap-md); padding: var(--cds-pad-md) 0; border-bottom: 1px solid var(--color-border-line); }
   .vg-goal:last-child { border-bottom: 0; }
   .vg-goal-name { font-weight: var(--cds-font-weight-medium); }
@@ -213,6 +218,7 @@
       <button type="button" class="vg-nav-item" data-page="members">Members</button>
       <button type="button" class="vg-nav-item" data-page="revenue">Revenue</button>
       <button type="button" class="vg-nav-item" data-page="team">Team</button>
+      <button type="button" class="vg-nav-item" data-page="misc">Misc</button>
     </nav>
     <div class="vg-side-foot">
       <p id="updated">Loading…</p>
@@ -456,6 +462,18 @@
     </div>
   </section>
 
+  <section class="vg-page" id="misc" hidden>
+    <header class="vg-page-head">
+      <h2 class="vg-title">Misc</h2>
+      <p class="vg-meta">Every weekly KPI, ranked by impact</p>
+    </header>
+    <div class="vg-card" id="misc-weekly">
+      <div class="vg-row"><h3 class="vg-h3">Every weekly KPI</h3><p class="vg-meta" data-draw="misc-summary"></p></div>
+      <div class="vg-scroll" data-draw="misc-table" data-source="weekly"></div>
+      <p class="vg-note vg-wk-note" data-draw="week-note">Weeks run Saturday to Friday and are dated by the Saturday meeting.</p>
+    </div>
+  </section>
+
   <section class="vg-page vg-guide" id="guide" hidden>
     <header class="vg-page-head">
       <h2 class="vg-title">Definitions</h2>
@@ -468,6 +486,9 @@
         <dt>Rebook rate</dt><dd>Visits where the client's next appointment is booked by the end of the following day.</dd>
         <dt>Active members</dt><dd>The starting count, plus memberships started, minus memberships cancelled.</dd>
         <dt>Cancellations</dt><dd>Cancelled appointments as a share of all appointments in the month.</dd>
+        <dt>Next week's booked visits</dt><dd>Appointments already on the books for the following week, counted when the week closes on Friday night.</dd>
+        <dt>Lowest provider rebook rate</dt><dd>The lowest rebook rate among providers with at least five visits that week.</dd>
+        <dt>Dashes in a week</dt><dd>The number could not be worked out for that week, for example a rate with no visits, or a week typed in from the earlier sheet.</dd>
         <dt>Yearly value of a lever</dt><dd>An estimate from the last three months, for ranking levers against each other. Not a forecast.</dd>
         <dt>Not included</dt><dd>Costs, profit and ad spend. Mangomint does not send them.</dd>
       </dl>
