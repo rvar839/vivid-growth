@@ -284,7 +284,10 @@
     const s = dash.data('scorecard');
     const node = (tag, cls, text) => { const n = document.createElement(tag); if (cls) n.className = cls; if (text != null) n.textContent = text; return n; };
     const show = (r, v) => (v == null ? '—' : r.fmt === 'pct' ? Math.round(v) + '%' : r.fmt === 'money' ? money(v) : int(v));
-    el.replaceChildren(...(s.status === 'ok' ? s.data : []).map((r) => {
+    // new patients, joining and revenue are judged weekly in the table above, so they are not repeated here
+    const shown = (s.status === 'ok' ? s.data : []).filter((r) => ['members', 'rebook', 'cancel_rate'].includes(r.key));
+    if (!shown.length) { el.textContent = s.status === 'ok' ? 'No data yet' : '—'; return; }
+    el.replaceChildren(...shown.map((r) => {
       const row = node('div', 'vg-goal');
       row.dataset.status = r.status;
       row.append(node('div', 'vg-goal-name', r.label));
@@ -298,6 +301,56 @@
       row.append(node('div', 'vg-chip', STATUS[r.status]));
       return row;
     }));
+  });
+
+  // ---------- weekly scorecard: one column per week ending Saturday ----------
+  const WEEK_KPIS = [
+    { label: 'New clients showed', bench: 'new_clients', val: (r) => +r.new_clients, fmt: int },
+    { label: 'New clients with membership or package', bench: 'joined', val: (r) => +r.joined, fmt: int },
+    { label: 'Membership or package sales %', bench: 'conversion', val: (r) => (+r.new_clients ? (+r.joined / +r.new_clients) * 100 : null), fmt: (v) => Math.round(v) + '%' },
+    { label: 'Revenue', bench: 'revenue', val: (r) => +r.revenue, fmt: money },
+  ];
+  const weekBench = (k) => { const b = ((window.VG_GOALS || {}).weekly || {})[k.bench]; return b == null ? null : +b; };
+  const weekDone = (r) => !!window.VG_TODAY && r.week_end < window.VG_TODAY; // the week's Saturday has passed
+  const weekDay = (iso) => d3.utcFormat('%-m/%-d')(parseMonth(iso));
+  dash.draw('week-table', (el) => {
+    const s = dash.data('weekly');
+    const weeks = s.status === 'ok' ? s.data.slice(el.clientWidth < 520 ? -2 : -6) : []; // a phone shows last week and this week
+    if (!weeks.length) { el.textContent = s.status === 'ok' ? 'No weeks to show yet' : '—'; return; }
+    const node = (tag, cls, text) => { const n = document.createElement(tag); if (cls) n.className = cls; if (text != null) n.textContent = text; return n; };
+    const table = node('table', 'vg-wk');
+    const head = node('tr');
+    head.append(node('th', null, 'KPI'), node('th', null, 'Benchmark'));
+    for (const w of weeks) head.append(node('th', weekDone(w) ? null : 'vg-now', weekDone(w) ? weekDay(w.week_end) : 'This week'));
+    const thead = node('thead'); thead.append(head);
+    const tbody = node('tbody');
+    for (const k of WEEK_KPIS) {
+      const tr = node('tr'), bench = weekBench(k);
+      tr.append(node('th', null, k.label), node('td', 'vg-bench', bench == null ? '—' : 'Above ' + k.fmt(bench)));
+      for (const w of weeks) {
+        const v = k.val(w);
+        const hit = v != null && bench != null && v > bench;
+        // a finished week is a hit or a miss; the week in progress only turns green once it is already above the benchmark
+        const cls = v == null || bench == null ? '' : hit ? ' vg-hit' : weekDone(w) ? ' vg-miss' : '';
+        tr.append(node('td', 'vg-val' + cls + (weekDone(w) ? '' : ' vg-now'), v == null ? '—' : k.fmt(v)));
+      }
+      tbody.append(tr);
+    }
+    table.append(thead, tbody);
+    el.replaceChildren(table);
+  });
+  dash.draw('week-note', (el) => {
+    const s = dash.data('weekly');
+    const byHand = s.status === 'ok' && s.data.slice(-6).some((w) => w.entered_by_hand);
+    el.textContent = 'Each column is a week ending Saturday.' + (byHand ? ' Weeks before live tracking come from your earlier sheet.' : '');
+  });
+  dash.draw('week-summary', (el) => {
+    const s = dash.data('weekly');
+    const done = (s.status === 'ok' ? s.data : []).filter(weekDone);
+    const last = done[done.length - 1];
+    if (!last) { el.textContent = ''; return; }
+    const judged = WEEK_KPIS.map((k) => ({ v: k.val(last), b: weekBench(k) })).filter((x) => x.v != null && x.b != null);
+    el.textContent = `Week ending ${weekDay(last.week_end)}: ${judged.filter((x) => x.v > x.b).length} of ${judged.length} benchmarks hit`;
   });
 
   dash.draw('meter', (el) => {

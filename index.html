@@ -145,7 +145,19 @@
 
   .vg-page-head .vg-title { font-size: 24px; }
   .vg-meta { color: var(--color-fg-muted); font-size: var(--cds-font-size-caption); margin: 0; }
-  .vg-goals { display: grid; padding: 0 var(--cds-pad-lg); }
+  .vg-goals { display: grid; }
+  .vg-wk { border-collapse: collapse; width: 100%; font-variant-numeric: tabular-nums; }
+  .vg-wk th, .vg-wk td { padding: var(--cds-pad-md); border-bottom: 1px solid var(--color-border-line); text-align: right; white-space: nowrap; }
+  .vg-wk tbody tr:last-child td, .vg-wk tbody tr:last-child th { border-bottom: 0; }
+  .vg-wk thead th { color: var(--color-fg-muted); font-size: var(--cds-font-size-caption); font-weight: var(--cds-font-weight-medium); }
+  .vg-wk th:first-child { text-align: left; padding-left: 0; white-space: normal; min-width: 150px; font-weight: var(--cds-font-weight-medium); position: sticky; left: 0; background: var(--color-panel); }
+  .vg-wk td.vg-bench { color: var(--color-fg-muted); font-size: var(--cds-font-size-caption); }
+  .vg-wk td.vg-val { font-size: var(--cds-font-size-heading); }
+  .vg-wk td.vg-hit { color: var(--color-ok); font-weight: var(--cds-font-weight-medium); }
+  .vg-wk td.vg-miss { color: var(--color-bad); }
+  .vg-wk .vg-now { background: var(--color-bg); }
+  .vg-wk thead th.vg-now { color: var(--color-fg); }
+  .vg-wk-note { margin-top: var(--cds-gap-sm); }
   .vg-goal { display: grid; grid-template-columns: minmax(130px, 1.3fr) minmax(90px, auto) minmax(110px, 1fr) minmax(80px, 1.4fr) 104px; align-items: center; gap: var(--cds-gap-md); padding: var(--cds-pad-md) 0; border-bottom: 1px solid var(--color-border-line); }
   .vg-goal:last-child { border-bottom: 0; }
   .vg-goal-name { font-weight: var(--cds-font-weight-medium); }
@@ -217,36 +229,14 @@
     <p class="vg-status" id="note-empty" hidden>Waiting for the first Mangomint events.</p>
     <p class="vg-status" id="note-early" hidden>Tracking started recently. Comparisons need two months; action rankings firm up after three.</p>
     <p class="vg-status" id="note-baseline" hidden>Starting member count not entered yet.</p>
-    <div class="vg-card vg-goals" id="goals" data-draw="goal-rows" data-source="scorecard"></div>
-    <div class="vg-card" id="week">
-      <h3 class="vg-h3">This week</h3>
-      <div class="vg-week">
-        <div>
-          <p class="vg-k">New patients</p>
-          <p class="vg-big"><span data-draw="fig" data-source="week" data-field="new_clients" data-row="0">—</span></p>
-          <p class="vg-note">Last week <span data-draw="fig" data-source="week" data-field="last_new_clients" data-row="0">—</span></p>
-        </div>
-        <div>
-          <p class="vg-k">Joined</p>
-          <p class="vg-big"><span data-draw="fig" data-source="week" data-field="joined" data-row="0">—</span></p>
-          <p class="vg-note">Last week <span data-draw="fig" data-source="week" data-field="last_joined" data-row="0">—</span></p>
-        </div>
-        <div>
-          <p class="vg-k">Net new members</p>
-          <p class="vg-big"><span data-draw="fig" data-source="week" data-field="members_net" data-row="0">—</span></p>
-          <p class="vg-note">Last week <span data-draw="fig" data-source="week" data-field="last_members_net" data-row="0">—</span></p>
-        </div>
-        <div>
-          <p class="vg-k">Rebook rate</p>
-          <p class="vg-big"><span data-draw="fig" data-source="week" data-field="rebook_pct" data-row="0" data-fmt="pct">—</span></p>
-          <p class="vg-note">Last week <span data-draw="fig" data-source="week" data-field="last_rebook_pct" data-row="0" data-fmt="pct">—</span></p>
-        </div>
-        <div>
-          <p class="vg-k">Revenue</p>
-          <p class="vg-big"><span data-draw="fig" data-source="week" data-field="revenue" data-row="0" data-fmt="money">—</span></p>
-          <p class="vg-note">Last week <span data-draw="fig" data-source="week" data-field="last_revenue" data-row="0" data-fmt="money">—</span></p>
-        </div>
-      </div>
+    <div class="vg-card" id="weekly">
+      <div class="vg-row"><h3 class="vg-h3">Weekly scorecard</h3><p class="vg-meta" data-draw="week-summary"></p></div>
+      <div class="vg-scroll" data-draw="week-table" data-source="weekly"></div>
+      <p class="vg-note vg-wk-note" data-draw="week-note">Each column is a week ending Saturday.</p>
+    </div>
+    <div class="vg-card" id="goals">
+      <h3 class="vg-h3">Goals</h3>
+      <div class="vg-goals" data-draw="goal-rows" data-source="scorecard"></div>
     </div>
     <div class="vg-card" id="top-actions">
       <div class="vg-row"><h3 class="vg-h3">Biggest levers</h3><button type="button" class="vg-link" data-go="actions">Open Actions</button></div>
