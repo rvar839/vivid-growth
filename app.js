@@ -9,7 +9,7 @@
   const monthYear = d3.utcFormat('%B %Y');
   const money = d3.format('$,.0f');
   const int = d3.format(',.0f');
-  const thousands = (v) => '$' + d3.format(',.0f')(v / 1000) + 'k';
+  const thousands = (v) => (Math.abs(v) < 1000 ? money(v) : '$' + d3.format(',.1~f')(v / 1000) + 'k'); // $800, $1.2k, $40k
   const STREAMS = [
     ['revenue_services', 'Services'],
     ['revenue_products', 'Products'],
@@ -18,6 +18,7 @@
     ['revenue_giftcards', 'Gift cards'],
   ];
   const MUTED = 'var(--cds-chart-muted)';
+  const MIN_VISITS_TO_RANK = 30; // below this many tracked visits, lever values are noise and are not shown
 
   // ---------- calculations (readers can open each one in Sources) ----------
 
@@ -115,7 +116,15 @@
         d.setUTCMonth(d.getUTCMonth() + Math.ceil(toGo / perMonth));
         return d3.utcFormat('%B %Y')(d);
       };
+      const net1 = Math.round(net * 10) / 10;
+      const sentence = toGo === 0 ? 'The membership goal has been reached.'
+        : net <= 0
+          ? `Membership is not growing yet (${net1 > 0 ? '+' : ''}${net1.toFixed(1)} net new members a month), so there is no arrival date for the goal.`
+            + (netAtGoal > 0 ? ` Hitting the conversion goal would get there around ${eta(netAtGoal)}.` : ' The date appears once members start joining.')
+          : `At ${net1.toFixed(1)} net new members a month, the goal arrives around ${eta(net)}.`
+            + (netAtGoal > net ? ` At the conversion goal: ${eta(netAtGoal)}.` : '');
       return [{
+        sentence,
         net_per_month: Math.round(net * 10) / 10,
         net_per_month_at_goal: Math.round(netAtGoal * 10) / 10,
         eta: eta(net),
@@ -156,7 +165,8 @@
         { lever: 'conversion', name: 'Convert new clients to members', impact: dues ? k(extraJoiners * dues * RAMP) : null, extra_per_month: d1(extraJoiners), current_pct: Math.round(convRate * 100) },
         { lever: 'retention', name: 'Keep the members you have', impact: dues ? k((cancels / 2) * dues * RAMP) : null, cancels_per_month: d1(cancels), saved_per_month: d1(cancels / 2) },
       ].sort((a, b) => (b.impact ?? -1) - (a.impact ?? -1)); // a lever that cannot be valued yet (no member count) goes last
-      return rows.map((r, i) => ({ ...r, rank: i + 1 }));
+      const visits = sum('visits');
+      return rows.map((r, i) => ({ ...r, rank: i + 1, visits, thin: visits < MIN_VISITS_TO_RANK }));
     },
   });
 
@@ -529,9 +539,10 @@
 
   function yGrid(f, y, x0, x1, fmt) {
     const g = f.svg.append('g');
-    g.selectAll('line').data(y.ticks(4)).join('line').attr('x1', x0).attr('x2', x1)
+    const ticks = y.ticks(4).filter((t) => fmt !== int || Number.isInteger(t)); // counts get whole-number lines only
+    g.selectAll('line').data(ticks).join('line').attr('x1', x0).attr('x2', x1)
       .attr('y1', (d) => y(d)).attr('y2', (d) => y(d)).style('stroke', 'var(--cds-chart-grid)');
-    g.selectAll('text').data(y.ticks(4)).join('text').attr('class', 'vg-tick').attr('x', x0 - 6)
+    g.selectAll('text').data(ticks).join('text').attr('class', 'vg-tick').attr('x', x0 - 6)
       .attr('y', (d) => y(d)).attr('dy', '0.32em').attr('text-anchor', 'end').text(fmt);
   }
   function xMonths(f, x, months, yBase) {
@@ -759,7 +770,7 @@
         return td;
       };
       const when = clinicTime(r.appt_at);
-      const sub = [when && 'Appointment on ' + when, r.first_visit && 'First visit', r.cancellation && sentence(r.cancellation), r.failed && 'Could not be saved cleanly']
+      const sub = [when && 'Appointment on ' + when, r.first_visit && 'First visit', r.cancellation && sentence(r.cancellation), r.note || (r.failed && 'Saved, but could not be added to the numbers')]
         .filter(Boolean).join(' · ');
       cell(stamp(new Date(r.received_at)));
       cell(hookName(r));
@@ -817,11 +828,32 @@
     document.querySelectorAll('[data-swatch]').forEach((e) => {
       e.style.background = e.dataset.swatch === 'muted' ? MUTED : dash.colors[+e.dataset.swatch];
     });
+    // live tracking start: month and week totals only count from that day
+    const since = window.VG_SINCE ? parseMonth(window.VG_SINCE) : null;
+    const today = window.VG_TODAY ? parseMonth(window.VG_TODAY) : null;
+    const recent = since && today && (today - since) / 864e5 < 62;
+    const sinceText = since ? d3.utcFormat('%b %-d')(since) : '';
+    document.querySelectorAll('.vg-since').forEach((e) => {
+      e.hidden = !recent;
+      e.textContent = recent ? ` · counted from ${sinceText}, when live tracking began` : '';
+    });
+    const early = document.getElementById('note-early');
+    if (early && recent) early.textContent = `Live tracking began ${sinceText}. This week and this month only count from that day, so they will look low until a full period is in. Earlier weeks come from your sheet.`;
+
     const s = dash.data('levers');
     if (s.status !== 'ok') return;
+    const thin = !s.data.length || s.data[0].thin;
+    const n = s.data.length ? s.data[0].visits : 0;
+    const tooEarly = document.getElementById('note-levers');
+    if (tooEarly) {
+      tooEarly.hidden = !thin;
+      tooEarly.textContent = `Too early to put a dollar value on these: ${int(n)} ${n === 1 ? 'visit has' : 'visits have'} been tracked so far. Values and rankings appear once ${MIN_VISITS_TO_RANK} visits are in. The actions themselves still apply.`;
+    }
+    document.querySelectorAll('[data-lever] .vg-impact, [data-lever] .vg-why, [data-lever] .vg-rank').forEach((e) => { e.hidden = thin; });
+    document.querySelectorAll('.vg-levers-meta').forEach((e) => { e.textContent = thin ? 'Four levers that grow a medspa. Values appear once enough visits are tracked.' : 'Ranked by estimated yearly value, from the last three months.'; });
     document.querySelectorAll('[data-lever]').forEach((card) => {
       const row = s.data.find((r) => r.lever === card.dataset.lever);
-      if (row) card.style.order = row.rank;
+      card.style.order = row && !thin ? row.rank : '';
     });
   });
 })();

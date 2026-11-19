@@ -100,6 +100,7 @@
     state.raw = await res.json();
     window.VG_GOALS = state.raw.goals || {};
     window.VG_TODAY = state.raw.today || null;
+    window.VG_SINCE = state.raw.tracking_since || null;
     state.status = 'ok';
     keepCode(code);
     showApp();
