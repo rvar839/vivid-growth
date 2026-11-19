@@ -722,6 +722,59 @@
     }));
   });
 
+  // ---------- webhooks: the latest events Mangomint sent ----------
+
+  const HOOK_NAMES = {
+    AppointmentCreated: 'Appointment booked', AppointmentUpdated: 'Appointment changed', AppointmentDeleted: 'Appointment deleted',
+    SaleCompleted: 'Sale completed', SaleReopened: 'Sale reopened', SaleVoided: 'Sale voided', ping: 'Connection test',
+  };
+  const spaced = (t) => String(t || '').replace(/[_-]+/g, ' ').replace(/([a-z])([A-Z])/g, '$1 $2').trim();
+  const sentence = (t) => { const x = spaced(t).toLowerCase(); return x ? x[0].toUpperCase() + x.slice(1) : ''; };
+  const hookName = (r) => (r.kind === 'AppointmentDeleted' && r.cancellation ? 'Appointment cancelled' : HOOK_NAMES[r.kind] || sentence(r.kind) || 'Unknown event');
+  const cents = d3.format('$,.2f');
+  const stamp = (d) => (isNaN(d) ? '—' : d.toLocaleString([], {
+    month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit',
+    ...(d.getFullYear() !== new Date().getFullYear() ? { year: 'numeric' } : {}),
+  }));
+  // appointment times arrive as clinic clock time with no zone, so they are shown exactly as written
+  const clinicTime = (t) => { const m = /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})/.exec(t || ''); return m ? stamp(new Date(+m[1], +m[2] - 1, +m[3], +m[4], +m[5])) : null; };
+
+  dash.draw('hook-rows', (tbody) => {
+    const s = dash.data('webhooks');
+    const note = (text) => {
+      const tr = document.createElement('tr'), td = document.createElement('td');
+      td.colSpan = 5; td.className = 'vg-hook-empty'; td.textContent = text; tr.append(td);
+      return tr;
+    };
+    if (s.status !== 'ok') { tbody.replaceChildren(note(s.status === 'loading' ? 'Loading…' : 'The event list could not be loaded. Press Refresh to try again.')); return; }
+    if (!s.data.length) { tbody.replaceChildren(note('No events have arrived from Mangomint yet.')); return; }
+    tbody.replaceChildren(...s.data.map((r) => {
+      const tr = document.createElement('tr');
+      tr.dataset.key = r.id;
+      const cell = (text, sub) => {
+        const td = document.createElement('td');
+        td.textContent = text == null || text === '' ? '—' : text;
+        if (sub) { const sp = document.createElement('span'); sp.className = 'vg-hook-sub'; sp.textContent = sub; td.append(sp); }
+        tr.append(td);
+        return td;
+      };
+      const when = clinicTime(r.appt_at);
+      const sub = [when && 'Appointment on ' + when, r.first_visit && 'First visit', r.cancellation && sentence(r.cancellation), r.failed && 'Could not be saved cleanly']
+        .filter(Boolean).join(' · ');
+      cell(stamp(new Date(r.received_at)));
+      cell(hookName(r));
+      cell(r.items, sub);
+      cell(r.provider);
+      cell(r.amount == null || isNaN(+r.amount) ? null : cents(+r.amount));
+      return tr;
+    }));
+  });
+  dash.draw('hook-summary', (el) => {
+    const s = dash.data('webhooks');
+    const n = s.status === 'ok' ? s.data.length : 0;
+    el.textContent = n ? `Showing ${n} · latest ${stamp(new Date(s.data[0].received_at))}` : '';
+  });
+
   // ---------- sidebar navigation: one page shows at a time ----------
 
   const pages = () => [...document.querySelectorAll('.vg-page')];
