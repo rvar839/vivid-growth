@@ -40,6 +40,11 @@
   .vg-btn { appearance: none; font: inherit; font-weight: var(--cds-font-weight-medium); color: #fff; background: var(--s0); border: 0; border-radius: var(--cds-radius); padding: var(--cds-pad-md); cursor: pointer; }
   .vg-btn:disabled { opacity: 0.6; cursor: default; }
   .vg-login-error { color: var(--color-bad) !important; }
+  .vg-logo { display: block; width: 150px; max-width: 100%; aspect-ratio: 537 / 176; background-color: var(--color-fg); -webkit-mask: url(logo.png) center / contain no-repeat; mask: url(logo.png) center / contain no-repeat; }
+  .vg-logo-lg { width: 190px; margin: 0 auto; }
+  .vg-login-head { display: grid; gap: var(--cds-gap-md); text-align: center; }
+  .vg-login h1 { font-size: var(--cds-font-size-heading); font-family: var(--font-anthropic-sans); font-weight: var(--cds-font-weight-medium); letter-spacing: 0.06em; text-transform: uppercase; color: var(--color-fg-muted); }
+  .vg-brand { gap: var(--cds-gap-sm); padding: 0 var(--cds-pad-md); }
   .vg-status { margin: 0; padding: var(--cds-pad-sm) var(--cds-pad-md); border: 1px dashed var(--color-warn); border-radius: var(--cds-radius); color: var(--color-fg-muted); font-size: var(--cds-font-size-caption); max-width: 70ch; line-height: 1.45; }
   .vg-side-foot { display: grid; gap: var(--cds-gap-sm); justify-items: start; }
   .vg-side-foot p { margin: 0; color: var(--color-fg-muted); font-size: var(--cds-font-size-caption); padding: 0 var(--cds-pad-md); }
@@ -140,8 +145,9 @@
 <body>
 <main class="vg-login" id="login" hidden>
   <form class="vg-login-card" id="login-form" autocomplete="off">
-    <div>
-      <h1>Vivid Centre Growth</h1>
+    <div class="vg-login-head">
+      <span class="vg-logo vg-logo-lg" role="img" aria-label="Vivid Centre"></span>
+      <h1>Growth platform</h1>
       <p>Enter the team access code to open the dashboard.</p>
     </div>
     <label>Access code
@@ -154,7 +160,7 @@
 
 <div class="vg-shell" id="app" hidden><div class="vg-app">
   <aside class="vg-side" id="sidebar">
-    <div class="vg-brand"><span class="vg-brand-name">Vivid Centre</span><span class="vg-brand-sub">Growth platform</span></div>
+    <div class="vg-brand"><span class="vg-logo" role="img" aria-label="Vivid Centre"></span><span class="vg-brand-sub">Growth platform</span></div>
     <nav class="vg-nav" aria-label="Sections">
       <button type="button" class="vg-nav-item" data-page="overview" aria-current="page">Overview</button>
       <span class="vg-nav-group">Grow</span>
