@@ -311,7 +311,7 @@
     { label: 'Revenue', bench: 'revenue', val: (r) => +r.revenue, fmt: money },
   ];
   const weekBench = (k) => { const b = ((window.VG_GOALS || {}).weekly || {})[k.bench]; return b == null ? null : +b; };
-  const weekDone = (r) => !!window.VG_TODAY && r.week_end < window.VG_TODAY; // the week's Saturday has passed
+  const weekDone = (r) => !!window.VG_TODAY && r.week_end < window.VG_TODAY; // the week closed at midnight Friday
   const weekDay = (iso) => d3.utcFormat('%-m/%-d')(parseMonth(iso));
   dash.draw('week-table', (el) => {
     const s = dash.data('weekly');
@@ -321,7 +321,7 @@
     const table = node('table', 'vg-wk');
     const head = node('tr');
     head.append(node('th', null, 'KPI'), node('th', null, 'Benchmark'));
-    for (const w of weeks) head.append(node('th', weekDone(w) ? null : 'vg-now', weekDone(w) ? weekDay(w.week_end) : 'This week'));
+    for (const w of weeks) head.append(node('th', weekDone(w) ? null : 'vg-now', weekDone(w) ? weekDay(w.report_date || w.week_end) : 'This week'));
     const thead = node('thead'); thead.append(head);
     const tbody = node('tbody');
     for (const k of WEEK_KPIS) {
@@ -342,7 +342,7 @@
   dash.draw('week-note', (el) => {
     const s = dash.data('weekly');
     const byHand = s.status === 'ok' && s.data.slice(-6).some((w) => w.entered_by_hand);
-    el.textContent = 'Each column is a week ending Saturday.' + (byHand ? ' Weeks before live tracking come from your earlier sheet.' : '');
+    el.textContent = 'Weeks run Saturday to Friday and are dated by the Saturday meeting.' + (byHand ? ' Weeks before live tracking come from your earlier sheet.' : '');
   });
   dash.draw('week-summary', (el) => {
     const s = dash.data('weekly');
@@ -350,7 +350,7 @@
     const last = done[done.length - 1];
     if (!last) { el.textContent = ''; return; }
     const judged = WEEK_KPIS.map((k) => ({ v: k.val(last), b: weekBench(k) })).filter((x) => x.v != null && x.b != null);
-    el.textContent = `Week ending ${weekDay(last.week_end)}: ${judged.filter((x) => x.v > x.b).length} of ${judged.length} benchmarks hit`;
+    el.textContent = `Reported ${weekDay(last.report_date || last.week_end)}: ${judged.filter((x) => x.v > x.b).length} of ${judged.length} benchmarks hit`;
   });
 
   dash.draw('meter', (el) => {
