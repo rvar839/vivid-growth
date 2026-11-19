@@ -1,0 +1,476 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Vivid Centre Growth</title>
+<style>
+  :root {
+    --color-fg: #1b1726; --color-fg-muted: #6a6578; --color-bg: #fbfaf8; --color-panel: #ffffff; --color-border-line: #e6e2ea;
+    --color-ok: #16794a; --color-warn: #b7791f; --color-bad: #c23a2b;
+    --font-anthropic-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    --font-anthropic-serif: "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif;
+    --cds-font-size-caption: 12.5px; --cds-font-size-body: 14.5px; --cds-font-size-heading: 17px; --cds-font-size-title: 28px; --cds-font-weight-medium: 600;
+    --cds-gap-xs: 4px; --cds-gap-sm: 8px; --cds-gap-md: 16px; --cds-gap-lg: 24px; --cds-gap-xl: 36px;
+    --cds-pad-xs: 5px; --cds-pad-sm: 8px; --cds-pad-md: 12px; --cds-pad-lg: 18px; --cds-pad-xl: 24px; --cds-radius: 10px;
+    --cds-chart-muted: #d5d1dc; --cds-chart-grid: #eeebf1; --cds-chart-reference: #8a8496; --cds-text-secondary: #6a6578;
+    --cds-surface-popover: #ffffff; --cds-border: #dcd7e2; --cds-shadow-popover: 0 6px 20px rgba(27, 23, 38, 0.14);
+    --s0: #6d4ae6; --s1: #0e9f8a; --s2: #e0703f; --s3: #d4a13a; --s4: #3a6fd8;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --color-fg: #f1eef6; --color-fg-muted: #a39db3; --color-bg: #15121d; --color-panel: #1e1a29; --color-border-line: #332d42;
+      --color-ok: #4cc38a; --color-warn: #e0a84a; --color-bad: #f0715f;
+      --cds-chart-muted: #4a4459; --cds-chart-grid: #2a2536; --cds-chart-reference: #8f88a3; --cds-text-secondary: #a39db3;
+      --cds-surface-popover: #262133; --cds-border: #3a3449; --cds-shadow-popover: 0 6px 20px rgba(0, 0, 0, 0.5);
+      --s0: #9b82ff; --s1: #3cc4ae; --s2: #f08a5d; --s3: #e3b65a; --s4: #6f9bf0;
+    }
+  }
+  html, body { margin: 0; background: var(--color-bg); }
+  body { padding: var(--cds-pad-xl); }
+  [hidden] { display: none !important; }
+  .vg-login { min-height: calc(100vh - 2 * var(--cds-pad-xl)); display: grid; place-items: center; font-family: var(--font-anthropic-sans); color: var(--color-fg); font-size: var(--cds-font-size-body); }
+  .vg-login-card { width: min(360px, 100%); background: var(--color-panel); border: 1px solid var(--color-border-line); border-radius: var(--cds-radius); padding: var(--cds-pad-xl); display: grid; gap: var(--cds-gap-md); box-sizing: border-box; }
+  .vg-login h1 { font-family: var(--font-anthropic-serif); font-weight: 400; font-size: var(--cds-font-size-title); margin: 0; }
+  .vg-login p { margin: 0; color: var(--color-fg-muted); line-height: 1.45; }
+  .vg-login label { font-size: var(--cds-font-size-caption); color: var(--color-fg-muted); display: grid; gap: var(--cds-gap-xs); }
+  .vg-login input { font: inherit; color: var(--color-fg); background: var(--color-bg); border: 1px solid var(--color-border-line); border-radius: var(--cds-radius); padding: var(--cds-pad-md); }
+  .vg-login input:focus-visible, .vg-btn:focus-visible, .vg-nav-item:focus-visible, .vg-link:focus-visible { outline: 2px solid var(--s0); outline-offset: 2px; }
+  .vg-btn { appearance: none; font: inherit; font-weight: var(--cds-font-weight-medium); color: #fff; background: var(--s0); border: 0; border-radius: var(--cds-radius); padding: var(--cds-pad-md); cursor: pointer; }
+  .vg-btn:disabled { opacity: 0.6; cursor: default; }
+  .vg-login-error { color: var(--color-bad) !important; }
+  .vg-status { margin: 0; padding: var(--cds-pad-sm) var(--cds-pad-md); border: 1px dashed var(--color-warn); border-radius: var(--cds-radius); color: var(--color-fg-muted); font-size: var(--cds-font-size-caption); max-width: 70ch; line-height: 1.45; }
+  .vg-side-foot { display: grid; gap: var(--cds-gap-sm); justify-items: start; }
+  .vg-side-foot p { margin: 0; color: var(--color-fg-muted); font-size: var(--cds-font-size-caption); padding: 0 var(--cds-pad-md); }
+  .vg-nav-item[aria-current] { box-shadow: inset 3px 0 0 var(--s0); }
+  @container (max-width: 760px) { .vg-side-foot { display: flex; flex-wrap: wrap; align-items: center; } .vg-nav-item[aria-current] { box-shadow: inset 0 -3px 0 var(--s0); } }
+  @media (max-width: 600px) { body { padding: var(--cds-pad-md); } }
+
+  .vg-title { font-family: var(--font-anthropic-serif); font-weight: 400; font-size: var(--cds-font-size-title); margin: 0; }
+  .vg-lede { margin: var(--cds-gap-sm) 0 0; max-width: 62ch; line-height: 1.5; }
+  .vg-lede b, .vg-pace b { font-weight: var(--cds-font-weight-medium); font-variant-numeric: tabular-nums; }
+  .vg-sample { margin: 0; padding: var(--cds-pad-sm) var(--cds-pad-md); border: 1px dashed var(--color-warn); border-radius: var(--cds-radius); color: var(--color-fg-muted); font-size: var(--cds-font-size-caption); max-width: 62ch; }
+  .vg-h2 { font-size: var(--cds-font-size-heading); font-weight: var(--cds-font-weight-medium); margin: 0 0 var(--cds-gap-xs); }
+  .vg-sub { color: var(--color-fg-muted); margin: 0 0 var(--cds-gap-md); max-width: 70ch; line-height: 1.45; }
+  .vg-cards { display: grid; gap: var(--cds-gap-md); grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); }
+  .vg-card { background: var(--color-panel); border: 1px solid var(--color-border-line); border-radius: var(--cds-radius); padding: var(--cds-pad-lg); min-width: 0; }
+  .vg-k { color: var(--color-fg-muted); font-size: var(--cds-font-size-caption); margin: 0; }
+  .vg-big { font-family: var(--font-anthropic-serif); font-weight: 400; font-size: 2.25rem; line-height: 1.15; margin: var(--cds-gap-xs) 0; font-variant-numeric: tabular-nums; }
+  .vg-big small { font-family: var(--font-anthropic-sans); font-size: var(--cds-font-size-body); color: var(--color-fg-muted); white-space: nowrap; }
+  .vg-note { color: var(--color-fg-muted); font-size: var(--cds-font-size-caption); margin: 0; line-height: 1.45; }
+  .vg-good { color: var(--color-ok); font-weight: var(--cds-font-weight-medium); }
+  .vg-bad { color: var(--color-bad); font-weight: var(--cds-font-weight-medium); }
+  .vg-meter { display: block; height: 6px; border-radius: 3px; background: var(--color-border-line); margin: var(--cds-gap-sm) 0; overflow: hidden; }
+  .vg-meter span { display: block; height: 100%; border-radius: 3px; }
+  .vg-levers { display: grid; gap: var(--cds-gap-md); grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); }
+  .vg-lever { display: flex; flex-direction: column; gap: var(--cds-gap-sm); }
+  .vg-rank { font-size: var(--cds-font-size-caption); color: var(--color-fg-muted); letter-spacing: 0.04em; text-transform: uppercase; margin: 0; }
+  .vg-lever h3 { font-size: var(--cds-font-size-heading); font-weight: var(--cds-font-weight-medium); margin: 0; }
+  .vg-impact { margin: 0; }
+  .vg-impact b { font-family: var(--font-anthropic-serif); font-weight: 400; font-size: 1.75rem; font-variant-numeric: tabular-nums; }
+  .vg-lever p { margin: 0; line-height: 1.45; }
+  .vg-lever ul { margin: 0; padding-left: 1.1em; line-height: 1.45; display: grid; gap: var(--cds-gap-xs); }
+  .vg-do { font-size: var(--cds-font-size-caption); color: var(--color-fg-muted); font-weight: var(--cds-font-weight-medium); text-transform: uppercase; letter-spacing: 0.04em; }
+  .vg-two { display: grid; gap: var(--cds-gap-md); grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); }
+  .vg-h3 { font-size: var(--cds-font-size-body); font-weight: var(--cds-font-weight-medium); margin: 0 0 var(--cds-gap-xs); }
+  .vg-chart { min-height: 240px; margin-top: var(--cds-gap-sm); color: var(--color-fg-muted); }
+  .vg-chart-short { min-height: 140px; }
+  .vg-frame { position: relative; }
+  .vg-frame svg { display: block; overflow: visible; }
+  .vg-tick { fill: var(--cds-text-secondary); font-size: var(--cds-font-size-caption); font-family: var(--font-anthropic-sans); }
+  .vg-label { fill: var(--color-fg); font-size: var(--cds-font-size-caption); font-family: var(--font-anthropic-sans); font-weight: var(--cds-font-weight-medium); font-variant-numeric: tabular-nums; }
+  .vg-tip { position: absolute; pointer-events: none; z-index: 2; background: var(--cds-surface-popover); border: 1px solid var(--cds-border); box-shadow: var(--cds-shadow-popover); border-radius: var(--cds-radius); padding: var(--cds-pad-sm) var(--cds-pad-md); font-size: var(--cds-font-size-caption); white-space: nowrap; color: var(--cds-text-secondary); }
+  .vg-tip-head { color: var(--color-fg); font-weight: var(--cds-font-weight-medium); }
+  .vg-legend { display: flex; flex-wrap: wrap; gap: var(--cds-gap-xs) var(--cds-gap-md); font-size: var(--cds-font-size-caption); color: var(--color-fg-muted); margin: 0; padding: 0; list-style: none; }
+  .vg-legend i { display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin-right: 6px; }
+  .vg-pace { margin: var(--cds-gap-md) 0 0; line-height: 1.5; max-width: 70ch; }
+  .vg-scroll { overflow-x: auto; margin-top: var(--cds-gap-md); }
+  .vg-table { border-collapse: collapse; width: 100%; font-variant-numeric: tabular-nums; }
+  .vg-table th, .vg-table td { text-align: right; padding: var(--cds-pad-sm) var(--cds-pad-md); border-bottom: 1px solid var(--color-border-line); white-space: nowrap; }
+  .vg-table th { color: var(--color-fg-muted); font-size: var(--cds-font-size-caption); font-weight: var(--cds-font-weight-medium); }
+  .vg-table th:first-child, .vg-table td:first-child { text-align: left; padding-left: 0; }
+  .vg-details { color: var(--color-fg-muted); line-height: 1.5; }
+  .vg-details summary { cursor: pointer; color: var(--color-fg); }
+  .vg-details dl { margin: var(--cds-gap-md) 0 0; display: grid; gap: var(--cds-gap-sm); max-width: 78ch; }
+  .vg-details dt { color: var(--color-fg); font-weight: var(--cds-font-weight-medium); }
+  .vg-details dd { margin: 0; }
+
+  .vg-shell { container-type: inline-size; color: var(--color-fg); font-family: var(--font-anthropic-sans); font-size: var(--cds-font-size-body); }
+  .vg-app { display: grid; grid-template-columns: 208px minmax(0, 1fr); gap: var(--cds-gap-xl); align-items: start; }
+  .vg-side { position: sticky; top: var(--cds-gap-md); display: grid; gap: var(--cds-gap-lg); padding-right: var(--cds-pad-lg); border-right: 1px solid var(--color-border-line); min-height: 420px; align-content: start; }
+  .vg-brand { display: grid; gap: 2px; }
+  .vg-brand-name { font-family: var(--font-anthropic-serif); font-size: var(--cds-font-size-heading); }
+  .vg-brand-sub { color: var(--color-fg-muted); font-size: var(--cds-font-size-caption); letter-spacing: 0.04em; text-transform: uppercase; }
+  .vg-nav { display: flex; flex-direction: column; gap: 2px; }
+  .vg-nav-group { color: var(--color-fg-muted); font-size: var(--cds-font-size-caption); letter-spacing: 0.04em; text-transform: uppercase; margin: var(--cds-gap-md) 0 var(--cds-gap-xs); padding: 0 var(--cds-pad-md); }
+  .vg-nav-item { appearance: none; border: 0; background: none; font: inherit; color: var(--color-fg); text-align: left; padding: var(--cds-pad-sm) var(--cds-pad-md); border-radius: var(--cds-radius); cursor: pointer; white-space: nowrap; }
+  .vg-nav-item:hover { background: var(--color-panel); }
+  .vg-nav-item[aria-current] { background: var(--color-panel); font-weight: var(--cds-font-weight-medium); box-shadow: inset 3px 0 0 var(--color-fg); }
+  .vg-side-note { color: var(--color-fg-muted); font-size: var(--cds-font-size-caption); margin: 0; padding: var(--cds-pad-sm) var(--cds-pad-md); border: 1px dashed var(--color-warn); border-radius: var(--cds-radius); }
+  .vg-main { min-width: 0; }
+  .vg-page { display: grid; gap: var(--cds-gap-lg); }
+  .vg-page[hidden] { display: none; }
+  .vg-page-head { display: grid; gap: var(--cds-gap-xs); }
+  .vg-crumb { color: var(--color-fg-muted); font-size: var(--cds-font-size-caption); letter-spacing: 0.04em; text-transform: uppercase; margin: 0; }
+  .vg-block { display: grid; gap: var(--cds-gap-sm); }
+  .vg-row { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: var(--cds-gap-sm); }
+  .vg-link { appearance: none; border: 1px solid var(--color-border-line); background: var(--color-bg); color: var(--color-fg); font: inherit; font-size: var(--cds-font-size-caption); padding: var(--cds-pad-xs) var(--cds-pad-md); border-radius: var(--cds-radius); cursor: pointer; white-space: nowrap; }
+  .vg-link:hover { background: var(--color-panel); }
+  .vg-card .vg-link { margin-top: var(--cds-gap-sm); }
+  .vg-left th:nth-child(2), .vg-left td:nth-child(2) { text-align: left; white-space: normal; }
+  .vg-left th:first-child, .vg-left td:first-child { width: 2.5em; color: var(--color-fg-muted); }
+  .vg-guide dl { margin: 0; display: grid; gap: var(--cds-gap-md); max-width: 78ch; line-height: 1.5; }
+  .vg-guide dt { font-weight: var(--cds-font-weight-medium); }
+  .vg-guide dd { margin: 0; color: var(--color-fg-muted); }
+  @container (max-width: 760px) {
+    .vg-app { grid-template-columns: minmax(0, 1fr); gap: var(--cds-gap-md); }
+    .vg-side { position: static; border-right: 0; border-bottom: 1px solid var(--color-border-line); padding: 0 0 var(--cds-pad-md); min-height: 0; gap: var(--cds-gap-sm); }
+    .vg-nav { flex-direction: row; overflow-x: auto; gap: var(--cds-gap-xs); }
+    .vg-nav-group, .vg-side-note { display: none; }
+    .vg-nav-item[aria-current] { box-shadow: inset 0 -3px 0 var(--color-fg); }
+  }
+  @media print {
+    .vg-app { grid-template-columns: minmax(0, 1fr); }
+    .vg-side, .vg-link { display: none; }
+    .vg-page { break-before: page; }
+  }
+</style>
+</head>
+<body>
+<main class="vg-login" id="login" hidden>
+  <form class="vg-login-card" id="login-form" autocomplete="off">
+    <div>
+      <h1>Vivid Centre Growth</h1>
+      <p>Enter the team access code to open the dashboard.</p>
+    </div>
+    <label>Access code
+      <input type="password" id="login-code" name="code" autocomplete="off" autocapitalize="off" spellcheck="false" required>
+    </label>
+    <p class="vg-login-error" id="login-error" role="alert" hidden></p>
+    <button type="submit" class="vg-btn" id="login-button">Open dashboard</button>
+  </form>
+</main>
+
+<div class="vg-shell" id="app" hidden><div class="vg-app">
+  <aside class="vg-side" id="sidebar">
+    <div class="vg-brand"><span class="vg-brand-name">Vivid Centre</span><span class="vg-brand-sub">Growth platform</span></div>
+    <nav class="vg-nav" aria-label="Sections">
+      <button type="button" class="vg-nav-item" data-page="overview" aria-current="page">Overview</button>
+      <span class="vg-nav-group">Grow</span>
+      <button type="button" class="vg-nav-item" data-page="levers">Growth levers</button>
+      <button type="button" class="vg-nav-item" data-page="new-patients">New patients</button>
+      <button type="button" class="vg-nav-item" data-page="memberships">Memberships</button>
+      <span class="vg-nav-group">Perform</span>
+      <button type="button" class="vg-nav-item" data-page="revenue">Revenue</button>
+      <button type="button" class="vg-nav-item" data-page="providers">Providers</button>
+      <span class="vg-nav-group">Help</span>
+      <button type="button" class="vg-nav-item" data-page="guide">How to read this</button>
+    </nav>
+    <div class="vg-side-foot">
+      <p id="updated">Loading…</p>
+      <button type="button" class="vg-link" id="refresh">Refresh numbers</button>
+      <button type="button" class="vg-link" id="signout">Sign out</button>
+    </div>
+  </aside>
+
+  <main class="vg-main">
+  <section class="vg-page" id="overview">
+    <header class="vg-page-head">
+      <p class="vg-crumb">Overview</p>
+      <h2 class="vg-title">Where Vivid Centre stands</h2>
+      <p class="vg-sub vg-live">In <b data-draw="fig" data-source="kpis" data-field="month_label" data-row="0" data-fmt="text">—</b>, <b data-draw="fig" data-source="kpis" data-field="new_clients" data-row="0">—</b> new patients came in and <b data-draw="fig" data-source="kpis" data-field="conv_pct" data-row="0" data-fmt="pct">—</b> of them joined a membership or package, against a goal of <b data-draw="goal" data-goal="conv">—</b>. Membership stands at <b data-draw="fig" data-source="kpis" data-field="members" data-row="0">—</b> of <b data-draw="goal" data-goal="members">—</b>.</p>
+    </header>
+    <p class="vg-status" id="note-error" hidden>The numbers could not be loaded just now. Use Refresh numbers to try again.</p>
+    <p class="vg-status" id="note-empty" hidden>Waiting for the first Mangomint events. Numbers appear here as soon as appointments and sales start arriving.</p>
+    <p class="vg-status" id="note-early" hidden>Tracking started recently. Month-to-month changes need two months of data, and the lever rankings firm up after three.</p>
+    <p class="vg-status" id="note-baseline" hidden>The starting member count has not been entered yet, so the member total shows a dash.</p>
+    <div class="vg-cards" id="scorecard">
+      <div class="vg-card" id="card-new">
+        <p class="vg-k">New patients</p>
+        <p class="vg-big"><span data-draw="fig" data-source="kpis" data-field="new_clients" data-row="0">—</span></p>
+        <p class="vg-note"><span class="vg-cmp"><span data-draw="delta" data-source="kpis" data-field="new_clients_change" data-row="0">—</span> vs <span data-draw="fig" data-source="kpis" data-field="prev_month_label" data-row="0" data-fmt="text">—</span>. </span>First-ever visits in the month.</p>
+        <button type="button" class="vg-link" data-go="new-patients">Open New patients</button>
+      </div>
+      <div class="vg-card" id="card-conv">
+        <p class="vg-k">New clients who joined</p>
+        <p class="vg-big"><span data-draw="fig" data-source="kpis" data-field="conv_pct" data-row="0" data-fmt="pct">—</span> <small>goal <span data-draw="goal" data-goal="conv">—</span></small></p>
+        <span class="vg-meter" data-draw="meter" data-goal="conv" data-source="kpis" data-field="conv_pct" data-row="0"></span>
+        <p class="vg-note"><span class="vg-cmp"><span data-draw="delta" data-source="kpis" data-field="conv_change_pts" data-row="0" data-fmt="pts">—</span> vs <span data-draw="fig" data-source="kpis" data-field="prev_month_label" data-row="0" data-fmt="text">—</span>. </span><span data-draw="fig" data-source="kpis" data-field="joined" data-row="0">—</span> bought a membership or package.</p>
+        <button type="button" class="vg-link" data-go="new-patients">Open New patients</button>
+      </div>
+      <div class="vg-card" id="card-members">
+        <p class="vg-k">Active members</p>
+        <p class="vg-big"><span data-draw="fig" data-source="kpis" data-field="members" data-row="0">—</span> <small>of <span data-draw="goal" data-goal="members">—</span></small></p>
+        <span class="vg-meter" data-draw="meter" data-goal="members" data-source="kpis" data-field="members" data-row="0"></span>
+        <p class="vg-note"><span class="vg-cmp"><span data-draw="delta" data-source="kpis" data-field="members_change" data-row="0">—</span> vs <span data-draw="fig" data-source="kpis" data-field="prev_month_label" data-row="0" data-fmt="text">—</span>. </span><span class="vg-need-members"><span data-draw="fig" data-source="kpis" data-field="members_to_goal" data-row="0">—</span> to go.</span></p>
+        <button type="button" class="vg-link" data-go="memberships">Open Memberships</button>
+      </div>
+      <div class="vg-card" id="card-rebook">
+        <p class="vg-k">Rebook rate</p>
+        <p class="vg-big"><span data-draw="fig" data-source="kpis" data-field="rebook_pct" data-row="0" data-fmt="pct">—</span></p>
+        <p class="vg-note"><span class="vg-cmp"><span data-draw="delta" data-source="kpis" data-field="rebook_change_pts" data-row="0" data-fmt="pts">—</span> vs <span data-draw="fig" data-source="kpis" data-field="prev_month_label" data-row="0" data-fmt="text">—</span>. </span>Visits where the client booked their next one.</p>
+        <button type="button" class="vg-link" data-go="providers">Open Providers</button>
+      </div>
+      <div class="vg-card" id="card-revenue">
+        <p class="vg-k">Revenue</p>
+        <p class="vg-big"><span data-draw="fig" data-source="kpis" data-field="revenue" data-row="0" data-fmt="money">—</span></p>
+        <p class="vg-note"><span class="vg-cmp"><span data-draw="delta" data-source="kpis" data-field="revenue_change_pct" data-row="0" data-fmt="pct">—</span> vs <span data-draw="fig" data-source="kpis" data-field="prev_month_label" data-row="0" data-fmt="text">—</span>. </span>All sales in the month.</p>
+        <button type="button" class="vg-link" data-go="revenue">Open Revenue</button>
+      </div>
+    </div>
+    <div class="vg-two">
+      <div class="vg-card" id="overview-levers">
+        <div class="vg-row"><h3 class="vg-h3">What to do next</h3><button type="button" class="vg-link" data-go="levers">See the actions</button></div>
+        <p class="vg-note">Levers ranked by estimated first-year revenue.</p>
+        <div class="vg-scroll">
+          <table class="vg-table vg-left" id="lever-table" data-source="levers" data-row-key="lever">
+            <thead><tr><th data-field="rank">#</th><th data-field="name">Lever</th><th data-field="impact">Worth a year</th></tr></thead>
+            <tbody data-draw="lever-rows"></tbody>
+          </table>
+        </div>
+      </div>
+      <div class="vg-card" id="overview-members">
+        <div class="vg-row"><h3 class="vg-h3">Road to <span data-draw="goal" data-goal="members">—</span> members</h3><button type="button" class="vg-link" data-go="memberships">Open Memberships</button></div>
+        <div class="vg-chart" id="overview-chart-members" data-draw="chart-members" data-source="monthly" data-label="Active members at the end of each month, against the goal">—</div>
+      </div>
+    </div>
+  </section>
+
+  <section class="vg-page" id="levers" hidden>
+    <header class="vg-page-head">
+      <p class="vg-crumb">Grow</p>
+      <h2 class="vg-title">Growth levers</h2>
+      <p class="vg-sub">The four moves most likely to grow the business, ranked by estimated first-year revenue and recalculated from the last three months. Each card says what to do. These are estimates for comparing levers, not forecasts.</p>
+    </header>
+    <div class="vg-levers">
+      <article class="vg-card vg-lever" data-lever="new_patients" id="lever-new-patients">
+        <p class="vg-rank">Lever <span data-draw="fig" data-source="levers" data-field="rank" data-where="lever=new_patients">—</span></p>
+        <h3>Bring in more new patients</h3>
+        <p class="vg-impact"><b data-draw="fig" data-source="levers" data-field="impact" data-where="lever=new_patients" data-fmt="money">—</b> a year</p>
+        <p>What <span data-draw="fig" data-source="levers" data-field="add_per_month" data-where="lever=new_patients">—</span> extra new patients a month are worth, from their visits plus the share who join at today's rate.</p>
+        <span class="vg-do">Do this</span>
+        <ul>
+          <li>Ask every happy client for a Google review at checkout.</li>
+          <li>Give each client a referral link with credit for both sides.</li>
+          <li>Run one ad per top treatment, each to its own landing page.</li>
+        </ul>
+      </article>
+      <article class="vg-card vg-lever" data-lever="rebook" id="lever-rebook">
+        <p class="vg-rank">Lever <span data-draw="fig" data-source="levers" data-field="rank" data-where="lever=rebook">—</span></p>
+        <h3>Rebook before they leave</h3>
+        <p class="vg-impact"><b data-draw="fig" data-source="levers" data-field="impact" data-where="lever=rebook" data-fmt="money">—</b> a year</p>
+        <p><span data-draw="fig" data-source="levers" data-field="top_provider" data-where="lever=rebook" data-fmt="text">—</span> rebooks <span data-draw="fig" data-source="levers" data-field="top_pct" data-where="lever=rebook" data-fmt="pct">—</span> of visits against a clinic rate of <span data-draw="fig" data-source="levers" data-field="clinic_pct" data-where="lever=rebook" data-fmt="pct">—</span>. If everyone closed half that gap, it adds about <span data-draw="fig" data-source="levers" data-field="extra_visits" data-where="lever=rebook">—</span> visits a year.</p>
+        <span class="vg-do">Do this</span>
+        <ul>
+          <li>Have your top rebooker show the team how they close a visit.</li>
+          <li>Book the next visit in the room, before the front desk.</li>
+          <li>Text anyone who left without a booking two days later.</li>
+        </ul>
+      </article>
+      <article class="vg-card vg-lever" data-lever="conversion" id="lever-conversion">
+        <p class="vg-rank">Lever <span data-draw="fig" data-source="levers" data-field="rank" data-where="lever=conversion">—</span></p>
+        <h3>Convert new clients to members</h3>
+        <p class="vg-impact"><b data-draw="fig" data-source="levers" data-field="impact" data-where="lever=conversion" data-fmt="money">—</b> a year</p>
+        <p>New clients join at <span data-draw="fig" data-source="levers" data-field="current_pct" data-where="lever=conversion" data-fmt="pct">—</span> over the last three months. Reaching <span data-draw="goal" data-goal="conv">—</span> means <span data-draw="fig" data-source="levers" data-field="extra_per_month" data-where="lever=conversion" data-fmt="dec1">—</span> more joiners every month.</p>
+        <span class="vg-do">Do this</span>
+        <ul>
+          <li>Show the member price beside the standard price at every first checkout.</li>
+          <li>Give providers one line to offer membership during the consult.</li>
+          <li>Follow up within 48 hours with a first-month offer.</li>
+        </ul>
+      </article>
+      <article class="vg-card vg-lever" data-lever="retention" id="lever-retention">
+        <p class="vg-rank">Lever <span data-draw="fig" data-source="levers" data-field="rank" data-where="lever=retention">—</span></p>
+        <h3>Keep the members you have</h3>
+        <p class="vg-impact"><b data-draw="fig" data-source="levers" data-field="impact" data-where="lever=retention" data-fmt="money">—</b> a year</p>
+        <p>About <span data-draw="fig" data-source="levers" data-field="cancels_per_month" data-where="lever=retention" data-fmt="dec1">—</span> members cancel each month. Saving half of them keeps <span data-draw="fig" data-source="levers" data-field="saved_per_month" data-where="lever=retention" data-fmt="dec1">—</span> more a month.</p>
+        <span class="vg-do">Do this</span>
+        <ul>
+          <li>Call or text every member the day a cancel request comes in.</li>
+          <li>Offer a pause or a lower tier before a cancel.</li>
+          <li>Check in with members who have not visited in 60 days.</li>
+        </ul>
+      </article>
+    </div>
+  </section>
+
+  <section class="vg-page" id="new-patients" hidden>
+    <header class="vg-page-head">
+      <p class="vg-crumb">Grow</p>
+      <h2 class="vg-title">New patients</h2>
+      <p class="vg-sub">The growth thesis: more first-time clients, and at least <span data-draw="goal" data-goal="conv">—</span> of them leaving with a membership or package. Latest month: <span data-draw="fig" data-source="kpis" data-field="month_label" data-row="0" data-fmt="text">—</span>.</p>
+    </header>
+    <div class="vg-cards">
+      <div class="vg-card" id="np-card-new">
+        <p class="vg-k">New patients</p>
+        <p class="vg-big"><span data-draw="fig" data-source="kpis" data-field="new_clients" data-row="0">—</span></p>
+        <p class="vg-note"><span class="vg-cmp"><span data-draw="delta" data-source="kpis" data-field="new_clients_change" data-row="0">—</span> vs <span data-draw="fig" data-source="kpis" data-field="prev_month_label" data-row="0" data-fmt="text">—</span>. </span>First-ever visits in the month.</p>
+      </div>
+      <div class="vg-card" id="np-card-conv">
+        <p class="vg-k">New clients who joined</p>
+        <p class="vg-big"><span data-draw="fig" data-source="kpis" data-field="conv_pct" data-row="0" data-fmt="pct">—</span> <small>goal <span data-draw="goal" data-goal="conv">—</span></small></p>
+        <span class="vg-meter" data-draw="meter" data-goal="conv" data-source="kpis" data-field="conv_pct" data-row="0"></span>
+        <p class="vg-note"><span class="vg-cmp"><span data-draw="delta" data-source="kpis" data-field="conv_change_pts" data-row="0" data-fmt="pts">—</span> vs <span data-draw="fig" data-source="kpis" data-field="prev_month_label" data-row="0" data-fmt="text">—</span>. </span><span data-draw="fig" data-source="kpis" data-field="joined" data-row="0">—</span> bought a membership or package.</p>
+      </div>
+    </div>
+    <div class="vg-two">
+      <div class="vg-card" id="card-chart-new">
+        <h3 class="vg-h3">New patients each month</h3>
+        <ul class="vg-legend"><li><i data-swatch="0"></i>Joined a membership</li><li><i data-swatch="1"></i>Bought a package</li><li><i data-swatch="muted"></i>Neither yet</li></ul>
+        <div class="vg-chart" id="chart-new" data-draw="chart-new" data-source="monthly" data-label="New patients each month, split by whether they joined a membership, bought a package, or neither">—</div>
+      </div>
+      <div class="vg-card" id="card-chart-conv">
+        <h3 class="vg-h3">Share of new clients who joined</h3>
+        <p class="vg-note">Membership or package bought by a first-time client, as a share of all first-time clients that month.</p>
+        <div class="vg-chart" id="chart-conv" data-draw="chart-conv" data-source="trend" data-label="Share of new clients who joined a membership or package each month, against the goal">—</div>
+      </div>
+    </div>
+    <div class="vg-card" id="np-providers">
+      <div class="vg-row"><h3 class="vg-h3">Who converts new clients best?</h3><button type="button" class="vg-link" data-go="providers">Open Providers</button></div>
+      <p class="vg-note">The Providers page shows each provider's new patients and the share who joined, over the last 90 days.</p>
+    </div>
+  </section>
+
+  <section class="vg-page" id="memberships" hidden>
+    <header class="vg-page-head">
+      <p class="vg-crumb">Grow</p>
+      <h2 class="vg-title">Memberships</h2>
+      <p class="vg-sub">Progress toward <span data-draw="goal" data-goal="members">—</span> active members. Latest month: <span data-draw="fig" data-source="kpis" data-field="month_label" data-row="0" data-fmt="text">—</span>.</p>
+    </header>
+    <div class="vg-cards">
+      <div class="vg-card" id="mem-card-members">
+        <p class="vg-k">Active members</p>
+        <p class="vg-big"><span data-draw="fig" data-source="kpis" data-field="members" data-row="0">—</span> <small>of <span data-draw="goal" data-goal="members">—</span></small></p>
+        <span class="vg-meter" data-draw="meter" data-goal="members" data-source="kpis" data-field="members" data-row="0"></span>
+        <p class="vg-note"><span class="vg-cmp"><span data-draw="delta" data-source="kpis" data-field="members_change" data-row="0">—</span> vs <span data-draw="fig" data-source="kpis" data-field="prev_month_label" data-row="0" data-fmt="text">—</span>. </span><span class="vg-need-members"><span data-draw="fig" data-source="kpis" data-field="members_to_goal" data-row="0">—</span> to go.</span></p>
+      </div>
+      <div class="vg-card" id="mem-card-starts">
+        <p class="vg-k">Joined this month</p>
+        <p class="vg-big"><span data-draw="fig" data-source="kpis" data-field="membership_starts" data-row="0">—</span></p>
+        <p class="vg-note">New memberships started in the month, from new and existing clients.</p>
+      </div>
+      <div class="vg-card" id="mem-card-cancels">
+        <p class="vg-k">Cancelled this month</p>
+        <p class="vg-big"><span data-draw="fig" data-source="kpis" data-field="membership_cancels" data-row="0">—</span></p>
+        <p class="vg-note">Memberships cancelled in the month.</p>
+      </div>
+      <div class="vg-card" id="mem-card-recurring">
+        <p class="vg-k">Membership dues</p>
+        <p class="vg-big"><span data-draw="fig" data-source="kpis" data-field="recurring_revenue" data-row="0" data-fmt="money">—</span></p>
+        <p class="vg-note">Recurring membership revenue collected in the month.</p>
+      </div>
+    </div>
+    <div class="vg-card" id="card-chart-members">
+      <h3 class="vg-h3">Active members at month end</h3>
+      <div class="vg-chart" id="chart-members" data-draw="chart-members" data-source="monthly" data-label="Active members at the end of each month, against the goal">—</div>
+      <p class="vg-pace">At the current pace of <b data-draw="fig" data-source="pace" data-field="net_per_month" data-row="0" data-fmt="dec1">—</b> net new members a month, the goal arrives around <b data-draw="fig" data-source="pace" data-field="eta" data-row="0" data-fmt="text">—</b>. Hitting the conversion goal lifts that to <b data-draw="fig" data-source="pace" data-field="net_per_month_at_goal" data-row="0" data-fmt="dec1">—</b> a month and brings it forward to <b data-draw="fig" data-source="pace" data-field="eta_at_goal" data-row="0" data-fmt="text">—</b>.</p>
+    </div>
+  </section>
+
+  <section class="vg-page" id="revenue" hidden>
+    <header class="vg-page-head">
+      <p class="vg-crumb">Perform</p>
+      <h2 class="vg-title">Revenue</h2>
+      <p class="vg-sub">Where the money comes from, by type and by item. Latest month: <span data-draw="fig" data-source="kpis" data-field="month_label" data-row="0" data-fmt="text">—</span>.</p>
+    </header>
+    <div class="vg-cards">
+      <div class="vg-card" id="rev-card-revenue">
+        <p class="vg-k">Revenue</p>
+        <p class="vg-big"><span data-draw="fig" data-source="kpis" data-field="revenue" data-row="0" data-fmt="money">—</span></p>
+        <p class="vg-note"><span class="vg-cmp"><span data-draw="delta" data-source="kpis" data-field="revenue_change_pct" data-row="0" data-fmt="pct">—</span> vs <span data-draw="fig" data-source="kpis" data-field="prev_month_label" data-row="0" data-fmt="text">—</span>. </span>All sales in the month.</p>
+      </div>
+      <div class="vg-card" id="rev-card-ticket">
+        <p class="vg-k">Average spend per visit</p>
+        <p class="vg-big"><span data-draw="fig" data-source="kpis" data-field="avg_ticket" data-row="0" data-fmt="money">—</span></p>
+        <p class="vg-note">Service and product revenue divided by <span data-draw="fig" data-source="kpis" data-field="visits" data-row="0">—</span> visits in the month.</p>
+      </div>
+      <div class="vg-card" id="rev-card-recurring">
+        <p class="vg-k">Membership dues</p>
+        <p class="vg-big"><span data-draw="fig" data-source="kpis" data-field="recurring_revenue" data-row="0" data-fmt="money">—</span></p>
+        <p class="vg-note">Recurring membership revenue collected in the month.</p>
+      </div>
+    </div>
+    <div class="vg-two">
+      <div class="vg-card" id="card-chart-revenue">
+        <h3 class="vg-h3">Revenue by type, each month</h3>
+        <ul class="vg-legend"><li><i data-swatch="0"></i>Services</li><li><i data-swatch="1"></i>Products</li><li><i data-swatch="2"></i>Memberships</li><li><i data-swatch="3"></i>Packages</li><li><i data-swatch="4"></i>Gift cards</li></ul>
+        <div class="vg-chart" id="chart-revenue" data-draw="chart-revenue" data-source="monthly" data-label="Monthly revenue split into services, products, memberships, packages and gift cards">—</div>
+      </div>
+      <div class="vg-card" id="card-chart-sellers">
+        <h3 class="vg-h3">Top 10 services and products, last 90 days</h3>
+        <ul class="vg-legend"><li><i data-swatch="0"></i>Service</li><li><i data-swatch="1"></i>Product</li></ul>
+        <div class="vg-chart" id="chart-sellers" data-draw="chart-sellers" data-source="sellers" data-label="Top ten services and products by revenue over the last 90 days">—</div>
+      </div>
+    </div>
+  </section>
+
+  <section class="vg-page" id="providers" hidden>
+    <header class="vg-page-head">
+      <p class="vg-crumb">Perform</p>
+      <h2 class="vg-title">Providers</h2>
+      <p class="vg-sub">Rebooking and new-client conversion by provider over the last 90 days. Rebook rate is the share of completed visits where the client booked their next appointment.</p>
+    </header>
+    <div class="vg-cards">
+      <div class="vg-card" id="prov-card-clinic">
+        <p class="vg-k">Clinic rebook rate</p>
+        <p class="vg-big"><span data-draw="fig" data-source="levers" data-field="clinic_pct" data-where="lever=rebook" data-fmt="pct">—</span></p>
+        <p class="vg-note">All providers together, last 90 days.</p>
+      </div>
+      <div class="vg-card" id="prov-card-top">
+        <p class="vg-k">Top rebooker</p>
+        <p class="vg-big"><span data-draw="fig" data-source="levers" data-field="top_pct" data-where="lever=rebook" data-fmt="pct">—</span></p>
+        <p class="vg-note"><span data-draw="fig" data-source="levers" data-field="top_provider" data-where="lever=rebook" data-fmt="text">—</span> sets the bar for the team.</p>
+      </div>
+    </div>
+    <div class="vg-card" id="card-rebook-providers">
+      <h3 class="vg-h3">Rebook rate by provider</h3>
+      <div class="vg-chart vg-chart-short" id="chart-rebook" data-draw="chart-rebook" data-source="provider_stats levers" data-label="Rebook rate for each provider over the last 90 days, against the clinic rate">—</div>
+    </div>
+    <div class="vg-card" id="card-provider-table">
+      <h3 class="vg-h3">Provider scorecard</h3>
+      <div class="vg-scroll">
+        <table class="vg-table" id="provider-table" data-source="provider_stats" data-row-key="provider">
+          <thead><tr>
+            <th data-field="provider">Provider</th>
+            <th data-field="visits">Visits</th>
+            <th data-field="revenue">Revenue</th>
+            <th data-field="rebook_pct">Rebook rate</th>
+            <th data-field="new_clients">New patients</th>
+            <th data-field="conv_pct">New clients who joined</th>
+          </tr></thead>
+          <tbody data-draw="provider-rows"></tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <section class="vg-page vg-guide" id="guide" hidden>
+    <header class="vg-page-head">
+      <p class="vg-crumb">Help</p>
+      <h2 class="vg-title">How to read this</h2>
+      <p class="vg-sub">What each number means, and what the lever estimates assume.</p>
+    </header>
+    <div class="vg-card">
+      <dl>
+        <dt>New patient</dt><dd>A client whose first-ever appointment falls in the month.</dd>
+        <dt>New clients who joined</dt><dd>First-time clients who bought a membership or a package, divided by all first-time clients in the same period. The goal is <span data-draw="goal" data-goal="conv">—</span>.</dd>
+        <dt>Rebook rate</dt><dd>Completed visits where the client booked another appointment, divided by all completed visits.</dd>
+        <dt>Active members</dt><dd>Membership starts minus cancels, counted at month end. The goal is <span data-draw="goal" data-goal="members">—</span>.</dd>
+        <dt>Green and red changes</dt><dd>Each change compares the latest month with the month before. Green means the number moved the right way.</dd>
+        <dt>Lever estimates</dt><dd>Each uses the last three months as its baseline. A new member is valued at the average monthly dues per member, a visit at the average spend per visit, and members added through the year are counted from the month they join. Package revenue from extra joiners, member spend above dues, and overlap between levers are left out, so treat the figures as a way to rank levers, not as a forecast.</dd>
+        <dt>Rebook timing</dt><dd>A visit counts as rebooked when the client's next appointment is booked by the end of the day after the visit.</dd>
+        <dt>The current month</dt><dd>The latest month is still in progress, so its totals grow until the month ends.</dd>
+        <dt>Joining window</dt><dd>A new client counts as having joined if they buy a membership or package within 30 days of their first visit.</dd>
+        <dt>Not in this app</dt><dd>Costs, profit and ad spend, because Mangomint does not send them.</dd>
+      </dl>
+    </div>
+  </section>
+  </main>
+</div></div>
+
+<script src="d3.min.js"></script>
+<script src="shim.js"></script>
+<script src="app.js"></script>
+</body>
+</html>

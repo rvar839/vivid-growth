@@ -1,0 +1,440 @@
+(() => {
+  // Fixed goals the team chose. Change them here and every figure, line and sentence follows.
+  const GOAL_MEMBERS = 150;
+  const GOAL_CONV = 40; // percent of new clients who join a membership or package
+
+  const parseMonth = d3.utcParse('%Y-%m-%d');
+  const mon = d3.utcFormat('%b');
+  const monthYear = d3.utcFormat('%B %Y');
+  const money = d3.format('$,.0f');
+  const int = d3.format(',.0f');
+  const thousands = (v) => '$' + d3.format(',.0f')(v / 1000) + 'k';
+  const STREAMS = [
+    ['revenue_services', 'Services'],
+    ['revenue_products', 'Products'],
+    ['revenue_memberships', 'Memberships'],
+    ['revenue_packages', 'Packages'],
+    ['revenue_giftcards', 'Gift cards'],
+  ];
+  const MUTED = 'var(--cds-chart-muted)';
+
+  // ---------- calculations (readers can open each one in Sources) ----------
+
+  dash.calc('kpis', {
+    title: 'Headline numbers',
+    description: 'The latest month compared with the month before.',
+    inputs: ['monthly'],
+    fn: (monthly) => {
+      if (!monthly.length) return [];
+      const m = monthly[monthly.length - 1];
+      const p = monthly[monthly.length - 2] || null; // no month before the first one
+      const div = (a, b) => (b ? a / b : 0);
+      const has = (r) => r && r.active_members != null;
+      const joined = (r) => +r.new_to_membership + +r.new_to_package;
+      const conv = (r) => div(joined(r), +r.new_clients) * 100;
+      const rebook = (r) => div(+r.visits_rebooked, +r.visits) * 100;
+      const revenue = (r) => +r.revenue_services + +r.revenue_products + +r.revenue_memberships + +r.revenue_packages + +r.revenue_giftcards;
+      const GOAL_MEMBERS = 150;
+      return [{
+        month_label: d3.utcFormat('%B %Y')(d3.utcParse('%Y-%m-%d')(m.month)),
+        prev_month_label: p ? d3.utcFormat('%B')(d3.utcParse('%Y-%m-%d')(p.month)) : null,
+        new_clients: +m.new_clients,
+        new_clients_change: p ? +m.new_clients - +p.new_clients : null,
+        joined: joined(m),
+        conv_pct: Math.round(conv(m)),
+        conv_change_pts: p ? Math.round(conv(m)) - Math.round(conv(p)) : null,
+        members: has(m) ? +m.active_members : null,
+        members_change: has(m) && has(p) ? +m.active_members - +p.active_members : null,
+        members_to_goal: has(m) ? Math.max(0, GOAL_MEMBERS - +m.active_members) : null,
+        rebook_pct: Math.round(rebook(m)),
+        rebook_change_pts: p ? Math.round(rebook(m)) - Math.round(rebook(p)) : null,
+        revenue: revenue(m),
+        revenue_change_pct: p && revenue(p) ? Math.round((revenue(m) / revenue(p) - 1) * 100) : null,
+        recurring_revenue: +m.revenue_memberships,
+        avg_ticket: Math.round(div(+m.revenue_services + +m.revenue_products, +m.visits)),
+        visits: +m.visits,
+        membership_starts: +m.membership_starts,
+        membership_cancels: +m.membership_cancels,
+      }];
+    },
+  });
+
+  dash.calc('trend', {
+    title: 'Monthly rates',
+    description: 'New-client conversion and rebook rate for each month.',
+    inputs: ['monthly'],
+    fn: (monthly) => monthly.map((r) => ({
+      month: r.month,
+      conv_pct: +r.new_clients ? Math.round(((+r.new_to_membership + +r.new_to_package) / +r.new_clients) * 1000) / 10 : 0,
+      rebook_pct: +r.visits ? Math.round((+r.visits_rebooked / +r.visits) * 1000) / 10 : 0,
+    })),
+  });
+
+  dash.calc('provider_stats', {
+    title: 'Provider scorecard',
+    description: 'Rebook rate and new-client conversion for each provider over the last 90 days.',
+    inputs: ['providers'],
+    fn: (providers) => providers.map((p) => ({
+      provider: p.provider,
+      visits: +p.visits,
+      revenue: +p.revenue,
+      rebook_pct: +p.visits ? Math.round((+p.rebooked / +p.visits) * 100) : 0,
+      new_clients: +p.new_clients,
+      conv_pct: +p.new_clients ? Math.round((+p.new_converted / +p.new_clients) * 100) : 0,
+    })).sort((a, b) => b.rebook_pct - a.rebook_pct),
+  });
+
+  dash.calc('pace', {
+    title: 'Pace to the membership goal',
+    description: 'When membership reaches 150 at the average net growth of the last three months, and at the 40% conversion goal.',
+    inputs: ['monthly'],
+    fn: (monthly) => {
+      const m3 = monthly.slice(-3);
+      if (!m3.length || m3[m3.length - 1].active_members == null) return [];
+      const GOAL_MEMBERS = 150, GOAL_CONV = 0.4;
+      const sum = (k) => m3.reduce((a, r) => a + +r[k], 0);
+      const last = m3[m3.length - 1];
+      const net = (sum('membership_starts') - sum('membership_cancels')) / m3.length;
+      const newPerMonth = sum('new_clients') / m3.length;
+      const joined = sum('new_to_membership') + sum('new_to_package');
+      const convRate = sum('new_clients') ? joined / sum('new_clients') : 0;
+      const memberShare = joined ? sum('new_to_membership') / joined : 0; // share of joiners who pick a membership
+      const netAtGoal = net + Math.max(0, newPerMonth * (GOAL_CONV - convRate)) * memberShare;
+      const toGo = Math.max(0, GOAL_MEMBERS - +last.active_members);
+      const eta = (perMonth) => {
+        if (perMonth <= 0) return 'not at this pace';
+        const d = d3.utcParse('%Y-%m-%d')(last.month);
+        d.setUTCMonth(d.getUTCMonth() + Math.ceil(toGo / perMonth));
+        return d3.utcFormat('%B %Y')(d);
+      };
+      return [{
+        net_per_month: Math.round(net * 10) / 10,
+        net_per_month_at_goal: Math.round(netAtGoal * 10) / 10,
+        eta: eta(net),
+        eta_at_goal: eta(netAtGoal),
+      }];
+    },
+  });
+
+  dash.calc('levers', {
+    title: 'Growth levers, ranked',
+    description: 'Estimated first-year revenue from each lever, using the last three months as the baseline. Estimates, not forecasts.',
+    inputs: ['monthly', 'providers'],
+    fn: (monthly, providers) => {
+      const m3 = monthly.slice(-3);
+      if (!m3.length || !providers.length) return [];
+      const GOAL_CONV = 0.4;   // conversion goal
+      const ADD = 10;          // extra new patients a month in the "more new patients" lever
+      const RAMP = 78;         // months of dues collected in year one when one member joins every month: 12+11+...+1
+      const sum = (k) => m3.reduce((a, r) => a + +r[k], 0);
+      const last = m3[m3.length - 1];
+      const newPerMonth = sum('new_clients') / m3.length;
+      const convRate = sum('new_clients') ? (sum('new_to_membership') + sum('new_to_package')) / sum('new_clients') : 0;
+      const dues = +last.active_members ? +last.revenue_memberships / +last.active_members : 0;                             // average monthly dues per member
+      const ticket = sum('visits') ? (sum('revenue_services') + sum('revenue_products')) / sum('visits') : 0;         // average spend per visit
+      const extraJoiners = Math.max(0, newPerMonth * (GOAL_CONV - convRate));
+      const pv = providers.map((p) => ({ name: p.provider, visits: +p.visits, rate: +p.visits ? +p.rebooked / +p.visits : 0 }));
+      const top = pv.reduce((a, b) => (b.rate > a.rate ? b : a));
+      const clinicRate = pv.reduce((a, p) => a + p.rate * p.visits, 0) / (pv.reduce((a, p) => a + p.visits, 0) || 1);
+      // every provider closes half the gap to the best rebook rate; the providers source covers 90 days, so x4 for a year
+      const extraVisits = pv.reduce((a, p) => a + (p.visits * (top.rate - p.rate)) / 2, 0) * 4;
+      const cancels = sum('membership_cancels') / m3.length;
+      const k = (v) => Math.round(v / 1000) * 1000;
+      const d1 = (v) => Math.round(v * 10) / 10;
+      const rows = [
+        { lever: 'new_patients', name: 'Bring in more new patients', impact: k(ADD * 12 * ticket + ADD * convRate * dues * RAMP), add_per_month: ADD },
+        { lever: 'rebook', name: 'Rebook before they leave', impact: k(extraVisits * ticket), extra_visits: Math.round(extraVisits), top_provider: top.name, top_pct: Math.round(top.rate * 100), clinic_pct: Math.round(clinicRate * 100) },
+        { lever: 'conversion', name: 'Convert new clients to members', impact: dues ? k(extraJoiners * dues * RAMP) : null, extra_per_month: d1(extraJoiners), current_pct: Math.round(convRate * 100) },
+        { lever: 'retention', name: 'Keep the members you have', impact: dues ? k((cancels / 2) * dues * RAMP) : null, cancels_per_month: d1(cancels), saved_per_month: d1(cancels / 2) },
+      ].sort((a, b) => (b.impact ?? -1) - (a.impact ?? -1)); // a lever that cannot be valued yet (no member count) goes last
+      return rows.map((r, i) => ({ ...r, rank: i + 1 }));
+    },
+  });
+
+  // ---------- small figures ----------
+
+  const FORMATS = {
+    int, money,
+    pct: (v) => int(v) + '%',
+    dec1: d3.format(',.1f'),
+    text: (v) => String(v),
+  };
+  function cell(el) {
+    const s = dash.data(el.dataset.source);
+    if (s.status !== 'ok') return undefined;
+    let row;
+    if (el.dataset.where) {
+      const i = el.dataset.where.indexOf('=');
+      const key = el.dataset.where.slice(0, i), val = decodeURIComponent(el.dataset.where.slice(i + 1));
+      row = s.data.find((r) => String(r[key]) === val);
+    } else row = s.data[+el.dataset.row || 0];
+    const v = row ? row[el.dataset.field] : undefined;
+    return v === null ? undefined : v;
+  }
+  dash.draw('fig', (el) => {
+    const v = cell(el);
+    el.textContent = v === undefined ? '—' : (FORMATS[el.dataset.fmt] || FORMATS.int)(v);
+  });
+  dash.draw('delta', (el) => {
+    const v = cell(el);
+    el.classList.remove('vg-good', 'vg-bad');
+    if (v === undefined) { el.textContent = '—'; return; }
+    const unit = { pts: v === 1 || v === -1 ? ' pt' : ' pts', pct: '%' }[el.dataset.fmt] || '';
+    el.textContent = (v > 0 ? '+' : v < 0 ? '−' : '') + int(Math.abs(v)) + unit;
+    if (v) el.classList.add(v > 0 ? 'vg-good' : 'vg-bad'); // on this page every tracked number is better when higher
+  });
+  dash.draw('goal', (el) => {
+    el.textContent = el.dataset.goal === 'members' ? int(GOAL_MEMBERS) : GOAL_CONV + '%';
+  });
+  dash.draw('meter', (el) => {
+    const v = cell(el);
+    const goal = el.dataset.goal === 'members' ? GOAL_MEMBERS : GOAL_CONV;
+    el.textContent = '';
+    const bar = document.createElement('span');
+    bar.style.width = (v === undefined ? 0 : Math.min(100, (v / goal) * 100)) + '%';
+    bar.style.background = dash.colors[0];
+    el.append(bar);
+  });
+
+  // ---------- chart helpers ----------
+
+  function rowsOf(el, ids) {
+    const out = [];
+    for (const id of ids) {
+      const s = dash.data(id);
+      if (s.status !== 'ok') { el.textContent = s.status === 'error' ? 'Failed to load' : '—'; return null; }
+      out.push(s.data);
+    }
+    if (!out[0].length) { el.textContent = 'No data yet'; return null; }
+    return out;
+  }
+  function frame(el, height) {
+    el.textContent = '';
+    const w = Math.max(240, el.clientWidth);
+    const wrap = d3.select(el).append('div').attr('class', 'vg-frame');
+    const svg = wrap.append('svg').attr('viewBox', `0 0 ${w} ${height}`).attr('width', '100%').attr('height', height)
+      .attr('role', 'img').attr('aria-label', el.dataset.label || 'Chart');
+    const tip = wrap.append('div').attr('class', 'vg-tip').attr('hidden', '');
+    const show = (event, lines) => {
+      tip.attr('hidden', null).selectAll('div').data(lines).join('div')
+        .attr('class', (d, i) => (i ? 'vg-tip-line' : 'vg-tip-head')).text((d) => d);
+      const [x, y] = d3.pointer(event, wrap.node());
+      const tw = tip.node().offsetWidth, th = tip.node().offsetHeight, bw = wrap.node().clientWidth;
+      tip.style('left', Math.max(0, Math.min(bw - tw, x + 12)) + 'px').style('top', Math.max(0, y - th - 10) + 'px');
+    };
+    const hide = () => tip.attr('hidden', '');
+    return { svg, w, h: height, show, hide };
+  }
+  function widest(svg, strings, cls = 'vg-tick') {
+    const t = svg.append('text').attr('class', cls);
+    let max = 0;
+    for (const s of strings) { t.text(s); max = Math.max(max, t.node().getComputedTextLength()); }
+    t.remove();
+    return max;
+  }
+  const hover = (sel, f, lines) => sel
+    .on('pointerenter pointermove', (e, d) => f.show(e, lines(d)))
+    .on('pointerleave', f.hide);
+  const tickStep = (w, n) => (w / n < 34 ? (w / n < 20 ? 3 : 2) : 1);
+
+  function yGrid(f, y, x0, x1, fmt) {
+    const g = f.svg.append('g');
+    g.selectAll('line').data(y.ticks(4)).join('line').attr('x1', x0).attr('x2', x1)
+      .attr('y1', (d) => y(d)).attr('y2', (d) => y(d)).style('stroke', 'var(--cds-chart-grid)');
+    g.selectAll('text').data(y.ticks(4)).join('text').attr('class', 'vg-tick').attr('x', x0 - 6)
+      .attr('y', (d) => y(d)).attr('dy', '0.32em').attr('text-anchor', 'end').text(fmt);
+  }
+  function xMonths(f, x, months, yBase) {
+    const step = tickStep(f.w, months.length);
+    f.svg.append('g').selectAll('text').data(months.filter((d, i) => (months.length - 1 - i) % step === 0)).join('text')
+      .attr('class', 'vg-tick').attr('text-anchor', 'middle').attr('y', yBase + 16)
+      .attr('x', (d) => x(d) + (x.bandwidth ? x.bandwidth() / 2 : 0)).text((d) => mon(parseMonth(d)));
+  }
+
+  function stackedBars(el, rows, series, fmtAxis, fmtVal) {
+    const f = frame(el, 260);
+    const total = (r) => d3.sum(series, (s) => +r[s.key]);
+    const y = d3.scaleLinear().domain([0, d3.max(rows, total) || 1]).nice(4);
+    const ml = widest(f.svg, y.ticks(4).map(fmtAxis)) + 12, top = 18, base = f.h - 26;
+    y.range([base, top]);
+    const months = rows.map((r) => r.month);
+    const x = d3.scaleBand().domain(months).range([ml, f.w - 4]).padding(0.28);
+    yGrid(f, y, ml, f.w - 4, fmtAxis);
+    xMonths(f, x, months, base);
+    const g = f.svg.append('g').selectAll('g').data(rows).join('g');
+    g.each(function (r) {
+      let acc = 0;
+      for (const s of series) {
+        const v = +r[s.key];
+        d3.select(this).append('rect').attr('x', x(r.month)).attr('width', x.bandwidth())
+          .attr('y', y(acc + v)).attr('height', Math.max(0, y(acc) - y(acc + v) - 1)).style('fill', s.color);
+        acc += v;
+      }
+    });
+    if (x.bandwidth() >= 24) {
+      g.append('text').attr('class', 'vg-label').attr('text-anchor', 'middle')
+        .attr('x', (r) => x(r.month) + x.bandwidth() / 2).attr('y', (r) => y(total(r)) - 5).text((r) => fmtAxis(total(r)));
+    }
+    hover(g.append('rect').attr('x', (r) => x(r.month) - x.step() * 0.14).attr('width', x.step())
+      .attr('y', top).attr('height', base - top).style('fill', 'transparent'), f,
+      (r) => [monthYear(parseMonth(r.month)), ...series.map((s) => `${s.label}: ${fmtVal(+r[s.key])}`), `Total: ${fmtVal(total(r))}`]);
+  }
+
+  function lineChart(el, rows, o) {
+    const f = frame(el, 240);
+    const lastRow = rows[rows.length - 1];
+    const endLabel = o.fmt(+lastRow[o.key]);
+    const y = d3.scaleLinear().domain([0, Math.max(d3.max(rows, (r) => +r[o.key]) || 1, o.goal || 0) * 1.12]).nice(4);
+    const ml = widest(f.svg, y.ticks(4).map(o.fmt)) + 12, mr = widest(f.svg, [endLabel], 'vg-label') + 12, top = 14, base = f.h - 26;
+    y.range([base, top]);
+    const months = rows.map((r) => r.month);
+    const x = d3.scalePoint().domain(months).range([ml + 8, f.w - mr]);
+    yGrid(f, y, ml, f.w - mr, o.fmt);
+    xMonths(f, x, months, base);
+    if (o.goal) {
+      f.svg.append('line').attr('x1', ml).attr('x2', f.w - mr).attr('y1', y(o.goal)).attr('y2', y(o.goal))
+        .style('stroke', 'var(--cds-chart-reference)').style('stroke-dasharray', '5 4').style('stroke-width', 1.5);
+      f.svg.append('text').attr('class', 'vg-tick').attr('x', ml + 6).attr('y', y(o.goal) - 6).text(`Goal ${o.fmt(o.goal)}`);
+    }
+    f.svg.append('path').datum(rows).attr('fill', 'none').style('stroke', dash.colors[0]).style('stroke-width', 2.5)
+      .attr('d', d3.line().x((r) => x(r.month)).y((r) => y(+r[o.key])));
+    f.svg.append('g').selectAll('circle').data(rows).join('circle').attr('r', 3.5)
+      .attr('cx', (r) => x(r.month)).attr('cy', (r) => y(+r[o.key])).style('fill', dash.colors[0]);
+    f.svg.append('text').attr('class', 'vg-label').attr('x', x(lastRow.month) + 8).attr('y', y(+lastRow[o.key])).attr('dy', '0.32em').text(endLabel);
+    hover(f.svg.append('g').selectAll('circle').data(rows).join('circle').attr('r', 14)
+      .attr('cx', (r) => x(r.month)).attr('cy', (r) => y(+r[o.key])).style('fill', 'transparent'), f,
+      (r) => [monthYear(parseMonth(r.month)), `${o.name}: ${o.fmt(+r[o.key])}`, ...(o.goal ? [`Goal: ${o.fmt(o.goal)}`] : [])]);
+  }
+
+  function hBars(el, rows, o) {
+    const rowH = 30, top = o.ref ? 20 : 4;
+    const f = frame(el, rows.length * rowH + top + 6);
+    const ml = Math.min(f.w * 0.46, widest(f.svg, rows.map((r) => r[o.label])) + 10);
+    const mr = widest(f.svg, rows.map((r) => o.fmt(+r[o.key])), 'vg-label') + 10;
+    const x = d3.scaleLinear().domain([0, Math.max(d3.max(rows, (r) => +r[o.key]) || 1, o.ref || 0)]).range([ml, f.w - mr]);
+    const g = f.svg.append('g').selectAll('g').data(rows).join('g').attr('transform', (r, i) => `translate(0,${top + i * rowH})`);
+    g.append('text').attr('class', 'vg-tick').attr('x', ml - 8).attr('y', rowH / 2).attr('dy', '0.32em').attr('text-anchor', 'end').text((r) => r[o.label]);
+    g.append('rect').attr('x', ml).attr('y', 5).attr('height', rowH - 10).attr('rx', 3)
+      .attr('width', (r) => Math.max(1, x(+r[o.key]) - ml)).style('fill', (r) => o.color(r));
+    g.append('text').attr('class', 'vg-label').attr('x', (r) => x(+r[o.key]) + 6).attr('y', rowH / 2).attr('dy', '0.32em').text((r) => o.fmt(+r[o.key]));
+    if (o.ref) {
+      f.svg.append('line').attr('x1', x(o.ref)).attr('x2', x(o.ref)).attr('y1', top - 4).attr('y2', f.h - 4)
+        .style('stroke', 'var(--cds-chart-reference)').style('stroke-dasharray', '5 4').style('stroke-width', 1.5);
+      f.svg.append('text').attr('class', 'vg-tick').attr('x', x(o.ref)).attr('y', 10).attr('text-anchor', 'middle').text(`${o.refLabel} ${o.fmt(o.ref)}`);
+    }
+    hover(g.append('rect').attr('x', 0).attr('width', f.w).attr('height', rowH).style('fill', 'transparent'), f, o.tip);
+  }
+
+  // ---------- charts ----------
+
+  dash.draw('chart-new', (el) => {
+    const d = rowsOf(el, ['monthly']); if (!d) return;
+    const rows = d[0].map((r) => ({ ...r, not_yet: +r.new_clients - +r.new_to_membership - +r.new_to_package }));
+    stackedBars(el, rows, [
+      { key: 'new_to_membership', label: 'Joined a membership', color: dash.colors[0] },
+      { key: 'new_to_package', label: 'Bought a package', color: dash.colors[1] },
+      { key: 'not_yet', label: 'Neither yet', color: MUTED },
+    ], int, int);
+  });
+  dash.draw('chart-conv', (el) => {
+    const d = rowsOf(el, ['trend']); if (!d) return;
+    lineChart(el, d[0], { key: 'conv_pct', name: 'Joined a membership or package', fmt: (v) => d3.format('.0f')(v) + '%', goal: GOAL_CONV });
+  });
+  dash.draw('chart-members', (el) => {
+    const d = rowsOf(el, ['monthly']); if (!d) return;
+    const known = d[0].filter((r) => r.active_members != null);
+    if (!known.length) { el.textContent = 'The member count appears once the starting number is entered.'; return; }
+    lineChart(el, known, { key: 'active_members', name: 'Active members', fmt: int, goal: GOAL_MEMBERS });
+  });
+  dash.draw('chart-revenue', (el) => {
+    const d = rowsOf(el, ['monthly']); if (!d) return;
+    stackedBars(el, d[0], STREAMS.map(([key, label], i) => ({ key, label, color: dash.colors[i] })), thousands, money);
+  });
+  dash.draw('chart-sellers', (el) => {
+    const d = rowsOf(el, ['sellers']); if (!d) return;
+    const rows = [...d[0]].sort((a, b) => +b.revenue - +a.revenue).slice(0, 10);
+    hBars(el, rows, {
+      label: 'item', key: 'revenue', fmt: money,
+      color: (r) => (r.type === 'Product' ? dash.colors[1] : dash.colors[0]),
+      tip: (r) => [r.item, `${r.type}`, `Revenue: ${money(+r.revenue)}`, `Sold: ${int(+r.units)}`],
+    });
+  });
+  dash.draw('chart-rebook', (el) => {
+    const d = rowsOf(el, ['provider_stats', 'levers']); if (!d) return;
+    const clinic = (d[1].find((r) => r.lever === 'rebook') || {}).clinic_pct;
+    hBars(el, d[0], {
+      label: 'provider', key: 'rebook_pct', fmt: (v) => int(v) + '%', ref: clinic, refLabel: 'Clinic',
+      color: (r) => (clinic && r.rebook_pct < clinic ? MUTED : dash.colors[0]),
+      tip: (r) => [r.provider, `Rebook rate: ${r.rebook_pct}%`, `Visits: ${int(r.visits)}`, `Revenue: ${money(r.revenue)}`],
+    });
+  });
+  dash.draw('provider-rows', (tbody) => {
+    const s = dash.data('provider_stats');
+    const cols = [['provider', String], ['visits', int], ['revenue', money], ['rebook_pct', (v) => v + '%'], ['new_clients', int], ['conv_pct', (v) => v + '%']];
+    tbody.replaceChildren(...(s.status === 'ok' ? s.data : []).map((r) => {
+      const tr = document.createElement('tr');
+      for (const [k, f] of cols) { const td = document.createElement('td'); td.textContent = f(r[k]); tr.append(td); }
+      return tr;
+    }));
+  });
+
+  dash.draw('lever-rows', (tbody) => {
+    const s = dash.data('levers');
+    const cols = [['rank', int], ['name', String], ['impact', money]];
+    tbody.replaceChildren(...(s.status === 'ok' ? s.data : []).map((r) => {
+      const tr = document.createElement('tr');
+      tr.dataset.key = r.lever;
+      for (const [k, f] of cols) { const td = document.createElement('td'); td.textContent = r[k] == null ? '—' : f(r[k]); tr.append(td); }
+      return tr;
+    }));
+  });
+
+  // ---------- sidebar navigation: one page shows at a time ----------
+
+  const pages = () => [...document.querySelectorAll('.vg-page')];
+  let current = 'overview';
+  function go(id, link) {
+    const all = pages();
+    if (!all.length) return;
+    if (!all.some((p) => p.id === id)) id = all[0].id;
+    current = id;
+    for (const p of all) p.hidden = p.id !== id;
+    document.querySelectorAll('[data-page]').forEach((b) => {
+      if (b.dataset.page === id) b.setAttribute('aria-current', 'page'); else b.removeAttribute('aria-current');
+    });
+    const shown = all.find((p) => p.id === id);
+    new Set([...shown.querySelectorAll('[data-draw]')].map((e) => e.dataset.draw)).forEach((name) => dash.draw(name));
+    if (link) dash.setLink(id);
+  }
+  document.querySelectorAll('[data-page], [data-go]').forEach((b) => {
+    b.addEventListener('click', () => {
+      go(b.dataset.page || b.dataset.go, true);
+      const top = document.querySelector('.vg-main');
+      if (top && b.dataset.go) top.scrollIntoView({ block: 'start' });
+    });
+  });
+  if (location.hash.length > 1) go(decodeURIComponent(location.hash.slice(1)), false);
+  // printing lays every page out, one after another
+  window.addEventListener('beforeprint', () => { for (const p of pages()) p.hidden = false; });
+  window.addEventListener('afterprint', () => go(current, false));
+
+  // ---------- layout that follows the data: lever order and legend colours ----------
+
+  dash.onData(() => {
+    // hide comparisons and sentences that have nothing to say yet
+    const kp = dash.data('kpis');
+    const row = kp.status === 'ok' ? kp.data[0] : null;
+    document.querySelectorAll('.vg-cmp').forEach((e) => { e.hidden = !(row && row.prev_month_label); });
+    document.querySelectorAll('.vg-need-members').forEach((e) => { e.hidden = !(row && row.members != null); });
+    document.querySelectorAll('.vg-live').forEach((e) => { e.hidden = !row; });
+    document.querySelectorAll('[data-swatch]').forEach((e) => {
+      e.style.background = e.dataset.swatch === 'muted' ? MUTED : dash.colors[+e.dataset.swatch];
+    });
+    const s = dash.data('levers');
+    if (s.status !== 'ok') return;
+    document.querySelectorAll('[data-lever]').forEach((card) => {
+      const row = s.data.find((r) => r.lever === card.dataset.lever);
+      if (row) card.style.order = row.rank;
+    });
+  });
+})();
