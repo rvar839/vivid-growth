@@ -1,7 +1,8 @@
 (() => {
   // Fixed goals the team chose. Change them here and every figure, line and sentence follows.
-  const GOAL_MEMBERS = 150;
-  const GOAL_CONV = 40; // percent of new clients who join a membership or package
+  const goalOf = (k, fallback) => { const g = (window.VG_GOALS || {})[k]; return g && g.target != null ? +g.target : fallback; };
+  const GOAL_MEMBERS = () => goalOf('members', 150);
+  const GOAL_CONV = () => goalOf('conversion', 40); // percent of new clients who join a membership or package
 
   const parseMonth = d3.utcParse('%Y-%m-%d');
   const mon = d3.utcFormat('%b');
@@ -34,7 +35,9 @@
       const conv = (r) => div(joined(r), +r.new_clients) * 100;
       const rebook = (r) => div(+r.visits_rebooked, +r.visits) * 100;
       const revenue = (r) => +r.revenue_services + +r.revenue_products + +r.revenue_memberships + +r.revenue_packages + +r.revenue_giftcards;
-      const GOAL_MEMBERS = 150;
+      const g = window.VG_GOALS || {};
+      const GOAL_MEMBERS = g.members && g.members.target != null ? +g.members.target : 150;
+      const cancelled = +m.appts_cancelled || 0;
       return [{
         month_label: d3.utcFormat('%B %Y')(d3.utcParse('%Y-%m-%d')(m.month)),
         prev_month_label: p ? d3.utcFormat('%B')(d3.utcParse('%Y-%m-%d')(p.month)) : null,
@@ -55,6 +58,9 @@
         visits: +m.visits,
         membership_starts: +m.membership_starts,
         membership_cancels: +m.membership_cancels,
+        cancel_pct: Math.round(div(cancelled, +m.visits + cancelled) * 100),
+        online_pct: Math.round(div(+m.visits_booked_online || 0, +m.visits) * 100),
+        discounts: Math.round(+m.discounts || 0),
       }];
     },
   });
@@ -91,7 +97,9 @@
     fn: (monthly) => {
       const m3 = monthly.slice(-3);
       if (!m3.length || m3[m3.length - 1].active_members == null) return [];
-      const GOAL_MEMBERS = 150, GOAL_CONV = 0.4;
+      const g = window.VG_GOALS || {};
+      const GOAL_MEMBERS = g.members && g.members.target != null ? +g.members.target : 150;
+      const GOAL_CONV = (g.conversion && g.conversion.target != null ? +g.conversion.target : 40) / 100;
       const sum = (k) => m3.reduce((a, r) => a + +r[k], 0);
       const last = m3[m3.length - 1];
       const net = (sum('membership_starts') - sum('membership_cancels')) / m3.length;
@@ -123,7 +131,8 @@
     fn: (monthly, providers) => {
       const m3 = monthly.slice(-3);
       if (!m3.length || !providers.length) return [];
-      const GOAL_CONV = 0.4;   // conversion goal
+      const g = window.VG_GOALS || {};
+      const GOAL_CONV = (g.conversion && g.conversion.target != null ? +g.conversion.target : 40) / 100; // conversion goal
       const ADD = 10;          // extra new patients a month in the "more new patients" lever
       const RAMP = 78;         // months of dues collected in year one when one member joins every month: 12+11+...+1
       const sum = (k) => m3.reduce((a, r) => a + +r[k], 0);
@@ -148,6 +157,88 @@
         { lever: 'retention', name: 'Keep the members you have', impact: dues ? k((cancels / 2) * dues * RAMP) : null, cancels_per_month: d1(cancels), saved_per_month: d1(cancels / 2) },
       ].sort((a, b) => (b.impact ?? -1) - (a.impact ?? -1)); // a lever that cannot be valued yet (no member count) goes last
       return rows.map((r, i) => ({ ...r, rank: i + 1 }));
+    },
+  });
+
+  dash.calc('scorecard', {
+    title: 'Goal scorecard',
+    description: 'Each goal against its target. Monthly totals are judged against the share of the month that has passed.',
+    inputs: ['monthly'],
+    fn: (monthly) => {
+      const m = monthly[monthly.length - 1];
+      if (!m) return [];
+      const g = window.VG_GOALS || {};
+      const t = (k) => (g[k] && g[k].target != null ? +g[k].target : null);
+      const div = (a, b) => (b ? a / b : 0);
+      const day = (s) => new Date(s + 'T00:00:00Z');
+      const start = day(m.month), today = day(window.VG_TODAY || m.month);
+      const daysInMonth = new Date(Date.UTC(start.getUTCFullYear(), start.getUTCMonth() + 1, 0)).getUTCDate();
+      const elapsed = Math.min(1, Math.max(1, (today - start) / 864e5 + 1) / daysInMonth); // share of the month gone
+      const grade = (ratio) => (ratio >= 1 ? 'on' : ratio >= 0.85 ? 'risk' : 'behind');
+      const revenue = +m.revenue_services + +m.revenue_products + +m.revenue_memberships + +m.revenue_packages + +m.revenue_giftcards;
+      const conv = div(+m.new_to_membership + +m.new_to_package, +m.new_clients) * 100;
+      const rebook = div(+m.visits_rebooked, +m.visits) * 100;
+      const cancelled = +m.appts_cancelled || 0;
+      const cancelRate = div(cancelled, +m.visits + cancelled) * 100;
+      // a running total (new patients, revenue) is on track when it keeps up with the share of the month gone
+      const running = (key, label, actual, fmt) => {
+        const target = t(key);
+        return { key, label, fmt, actual, target, progress: target ? Math.min(1, actual / target) : null,
+          status: target ? grade(actual / (target * elapsed)) : 'none' };
+      };
+      const rate = (key, label, actual, fmt, hasData) => {
+        const target = t(key);
+        return { key, label, fmt, actual: hasData ? actual : null, target, progress: target && hasData ? Math.min(1, actual / target) : null,
+          status: !hasData ? 'wait' : target ? grade(actual / target) : 'none' };
+      };
+      // members: with a deadline, compare the recent net pace with the pace still needed
+      const members = (() => {
+        const target = t('members'), actual = m.active_members == null ? null : +m.active_members;
+        const row = { key: 'members', label: 'Active members', fmt: 'int', actual, target, progress: target && actual != null ? Math.min(1, actual / target) : null, status: 'none' };
+        if (actual == null) { row.status = 'wait'; return row; }
+        if (target && actual >= target) { row.status = 'on'; return row; }
+        const by = g.members && g.members.by ? day(g.members.by) : null;
+        if (!target || !by) return row;
+        const monthsLeft = Math.max(1, (by - today) / 864e5 / 30.4);
+        const recent = monthly.slice(-3);
+        const monthsSeen = recent.length - 1 + elapsed;
+        const net = recent.reduce((a, r) => a + +r.membership_starts - +r.membership_cancels, 0) / monthsSeen;
+        row.status = grade(net / ((target - actual) / monthsLeft));
+        return row;
+      })();
+      // cancellations: lower is better
+      const cancel = (() => {
+        const target = t('cancel_rate'), seen = +m.visits + cancelled > 0;
+        return { key: 'cancel_rate', label: 'Cancellations', fmt: 'pct', lower: true, actual: seen ? cancelRate : null, target,
+          progress: null, status: !seen ? 'wait' : target == null ? 'none' : cancelRate <= target ? 'on' : cancelRate <= target * 1.15 ? 'risk' : 'behind' };
+      })();
+      return [
+        running('new_patients', 'New patients', +m.new_clients, 'int'),
+        rate('conversion', 'New clients who joined', conv, 'pct', +m.new_clients > 0),
+        members,
+        rate('rebook', 'Rebook rate', rebook, 'pct', +m.visits > 0),
+        running('revenue', 'Revenue', revenue, 'money'),
+        cancel,
+      ];
+    },
+  });
+
+  dash.calc('week', {
+    title: 'This week against last week',
+    description: 'The current week so far (Monday start) beside the full week before it.',
+    inputs: ['weekly'],
+    fn: (weekly) => {
+      const w = weekly[weekly.length - 1];
+      if (!w) return [];
+      const p = weekly[weekly.length - 2] || null;
+      const pct = (r) => (+r.visits ? Math.round((+r.visits_rebooked / +r.visits) * 100) : 0);
+      return [{
+        new_clients: +w.new_clients, last_new_clients: p ? +p.new_clients : null,
+        joined: +w.joined, last_joined: p ? +p.joined : null,
+        rebook_pct: pct(w), last_rebook_pct: p ? pct(p) : null,
+        revenue: Math.round(+w.revenue), last_revenue: p ? Math.round(+p.revenue) : null,
+        members_net: +w.membership_starts - +w.membership_cancels, last_members_net: p ? +p.membership_starts - +p.membership_cancels : null,
+      }];
     },
   });
 
@@ -184,11 +275,34 @@
     if (v) el.classList.add(v > 0 ? 'vg-good' : 'vg-bad'); // on this page every tracked number is better when higher
   });
   dash.draw('goal', (el) => {
-    el.textContent = el.dataset.goal === 'members' ? int(GOAL_MEMBERS) : GOAL_CONV + '%';
+    el.textContent = el.dataset.goal === 'members' ? int(GOAL_MEMBERS()) : GOAL_CONV() + '%';
   });
+  dash.draw('owner', (el) => { el.textContent = (window.VG_GOALS || {}).owner || 'Not assigned'; });
+
+  const STATUS = { on: 'On track', risk: 'At risk', behind: 'Behind', none: 'No target set', wait: 'No data yet' };
+  dash.draw('goal-rows', (el) => {
+    const s = dash.data('scorecard');
+    const node = (tag, cls, text) => { const n = document.createElement(tag); if (cls) n.className = cls; if (text != null) n.textContent = text; return n; };
+    const show = (r, v) => (v == null ? '—' : r.fmt === 'pct' ? Math.round(v) + '%' : r.fmt === 'money' ? money(v) : int(v));
+    el.replaceChildren(...(s.status === 'ok' ? s.data : []).map((r) => {
+      const row = node('div', 'vg-goal');
+      row.dataset.status = r.status;
+      row.append(node('div', 'vg-goal-name', r.label));
+      row.append(node('div', 'vg-goal-now', show(r, r.actual)));
+      row.append(node('div', 'vg-goal-target', r.target == null ? 'No target' : (r.lower ? 'Keep under ' : 'Goal ') + show(r, r.target)));
+      const bar = node('div', 'vg-goal-bar');
+      const fill = node('span');
+      fill.style.width = (r.progress == null ? 0 : r.progress * 100) + '%';
+      bar.append(fill);
+      row.append(bar);
+      row.append(node('div', 'vg-chip', STATUS[r.status]));
+      return row;
+    }));
+  });
+
   dash.draw('meter', (el) => {
     const v = cell(el);
-    const goal = el.dataset.goal === 'members' ? GOAL_MEMBERS : GOAL_CONV;
+    const goal = el.dataset.goal === 'members' ? GOAL_MEMBERS() : GOAL_CONV();
     el.textContent = '';
     const bar = document.createElement('span');
     bar.style.width = (v === undefined ? 0 : Math.min(100, (v / goal) * 100)) + '%';
@@ -338,13 +452,13 @@
   });
   dash.draw('chart-conv', (el) => {
     const d = rowsOf(el, ['trend']); if (!d) return;
-    lineChart(el, d[0], { key: 'conv_pct', name: 'Joined a membership or package', fmt: (v) => d3.format('.0f')(v) + '%', goal: GOAL_CONV });
+    lineChart(el, d[0], { key: 'conv_pct', name: 'Joined a membership or package', fmt: (v) => d3.format('.0f')(v) + '%', goal: GOAL_CONV() });
   });
   dash.draw('chart-members', (el) => {
     const d = rowsOf(el, ['monthly']); if (!d) return;
     const known = d[0].filter((r) => r.active_members != null);
     if (!known.length) { el.textContent = 'The member count appears once the starting number is entered.'; return; }
-    lineChart(el, known, { key: 'active_members', name: 'Active members', fmt: int, goal: GOAL_MEMBERS });
+    lineChart(el, known, { key: 'active_members', name: 'Active members', fmt: int, goal: GOAL_MEMBERS() });
   });
   dash.draw('chart-revenue', (el) => {
     const d = rowsOf(el, ['monthly']); if (!d) return;
@@ -357,6 +471,13 @@
       label: 'item', key: 'revenue', fmt: money,
       color: (r) => (r.type === 'Product' ? dash.colors[1] : dash.colors[0]),
       tip: (r) => [r.item, `${r.type}`, `Revenue: ${money(+r.revenue)}`, `Sold: ${int(+r.units)}`],
+    });
+  });
+  dash.draw('chart-sources', (el) => {
+    const d = rowsOf(el, ['sources']); if (!d) return;
+    hBars(el, d[0].slice(0, 8), {
+      label: 'source', key: 'new_clients', fmt: int, color: () => dash.colors[0],
+      tip: (r) => [r.source, `New patients: ${int(+r.new_clients)}`, `Joined: ${int(+r.joined)}`],
     });
   });
   dash.draw('chart-rebook', (el) => {
@@ -392,7 +513,7 @@
   // ---------- sidebar navigation: one page shows at a time ----------
 
   const pages = () => [...document.querySelectorAll('.vg-page')];
-  let current = 'overview';
+  let current = 'scorecard';
   function go(id, link) {
     const all = pages();
     if (!all.length) return;

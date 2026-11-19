@@ -140,6 +140,34 @@
     .vg-side, .vg-link { display: none; }
     .vg-page { break-before: page; }
   }
+
+  .vg-page-head .vg-title { font-size: 24px; }
+  .vg-meta { color: var(--color-fg-muted); font-size: var(--cds-font-size-caption); margin: 0; }
+  .vg-goals { display: grid; padding: 0 var(--cds-pad-lg); }
+  .vg-goal { display: grid; grid-template-columns: minmax(130px, 1.3fr) minmax(90px, auto) minmax(110px, 1fr) minmax(80px, 1.4fr) 104px; align-items: center; gap: var(--cds-gap-md); padding: var(--cds-pad-md) 0; border-bottom: 1px solid var(--color-border-line); }
+  .vg-goal:last-child { border-bottom: 0; }
+  .vg-goal-name { font-weight: var(--cds-font-weight-medium); }
+  .vg-goal-now { font-family: var(--font-anthropic-serif); font-size: 1.6rem; font-variant-numeric: tabular-nums; text-align: right; }
+  .vg-goal-target { color: var(--color-fg-muted); font-size: var(--cds-font-size-caption); }
+  .vg-goal-bar { height: 6px; border-radius: 3px; background: var(--color-border-line); overflow: hidden; }
+  .vg-goal-bar span { display: block; height: 100%; border-radius: 3px; background: var(--color-fg-muted); }
+  .vg-chip { font-size: var(--cds-font-size-caption); font-weight: var(--cds-font-weight-medium); text-align: center; padding: 3px 8px; border-radius: 999px; border: 1px solid var(--color-border-line); color: var(--color-fg-muted); white-space: nowrap; }
+  .vg-goal[data-status="on"] .vg-chip { color: var(--color-ok); border-color: var(--color-ok); }
+  .vg-goal[data-status="on"] .vg-goal-bar span { background: var(--color-ok); }
+  .vg-goal[data-status="risk"] .vg-chip { color: var(--color-warn); border-color: var(--color-warn); }
+  .vg-goal[data-status="risk"] .vg-goal-bar span { background: var(--color-warn); }
+  .vg-goal[data-status="behind"] .vg-chip { color: #fff; background: var(--color-bad); border-color: var(--color-bad); }
+  .vg-goal[data-status="behind"] .vg-goal-bar span { background: var(--color-bad); }
+  .vg-week { margin-top: var(--cds-gap-sm); display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: var(--cds-gap-md); }
+  .vg-week .vg-big { font-size: 1.6rem; }
+  .vg-foot-link { appearance: none; border: 0; background: none; font: inherit; font-size: var(--cds-font-size-caption); color: var(--color-fg-muted); text-decoration: underline; cursor: pointer; padding: 0 var(--cds-pad-md); }
+  .vg-lever p.vg-why { color: var(--color-fg-muted); font-size: var(--cds-font-size-caption); }
+  @container (max-width: 620px) {
+    .vg-goal { grid-template-columns: 1fr auto; gap: var(--cds-gap-xs) var(--cds-gap-md); }
+    .vg-goal-now { grid-row: span 2; }
+    .vg-goal-bar { grid-column: 1 / -1; }
+    .vg-chip { justify-self: start; grid-column: 1 / -1; }
+  }
 </style>
 </head>
 <body>
@@ -162,99 +190,84 @@
   <aside class="vg-side" id="sidebar">
     <div class="vg-brand"><span class="vg-logo" role="img" aria-label="Vivid Centre"></span><span class="vg-brand-sub">Growth platform</span></div>
     <nav class="vg-nav" aria-label="Sections">
-      <button type="button" class="vg-nav-item" data-page="overview" aria-current="page">Overview</button>
-      <span class="vg-nav-group">Grow</span>
-      <button type="button" class="vg-nav-item" data-page="levers">Growth levers</button>
-      <button type="button" class="vg-nav-item" data-page="new-patients">New patients</button>
-      <button type="button" class="vg-nav-item" data-page="memberships">Memberships</button>
-      <span class="vg-nav-group">Perform</span>
+      <button type="button" class="vg-nav-item" data-page="scorecard" aria-current="page">Scorecard</button>
+      <button type="button" class="vg-nav-item" data-page="actions">Actions</button>
+      <button type="button" class="vg-nav-item" data-page="patients">Patients</button>
+      <button type="button" class="vg-nav-item" data-page="members">Members</button>
       <button type="button" class="vg-nav-item" data-page="revenue">Revenue</button>
-      <button type="button" class="vg-nav-item" data-page="providers">Providers</button>
-      <span class="vg-nav-group">Help</span>
-      <button type="button" class="vg-nav-item" data-page="guide">How to read this</button>
+      <button type="button" class="vg-nav-item" data-page="team">Team</button>
     </nav>
     <div class="vg-side-foot">
       <p id="updated">Loading…</p>
-      <button type="button" class="vg-link" id="refresh">Refresh numbers</button>
+      <button type="button" class="vg-link" id="refresh">Refresh</button>
       <button type="button" class="vg-link" id="signout">Sign out</button>
+      <button type="button" class="vg-foot-link" data-go="guide">Definitions</button>
     </div>
   </aside>
 
   <main class="vg-main">
-  <section class="vg-page" id="overview">
+  <section class="vg-page" id="scorecard">
     <header class="vg-page-head">
-      <p class="vg-crumb">Overview</p>
-      <h2 class="vg-title">Where Vivid Centre stands</h2>
-      <p class="vg-sub vg-live">In <b data-draw="fig" data-source="kpis" data-field="month_label" data-row="0" data-fmt="text">—</b>, <b data-draw="fig" data-source="kpis" data-field="new_clients" data-row="0">—</b> new patients came in and <b data-draw="fig" data-source="kpis" data-field="conv_pct" data-row="0" data-fmt="pct">—</b> of them joined a membership or package, against a goal of <b data-draw="goal" data-goal="conv">—</b>. Membership stands at <b data-draw="fig" data-source="kpis" data-field="members" data-row="0">—</b> of <b data-draw="goal" data-goal="members">—</b>.</p>
+      <h2 class="vg-title">Scorecard</h2>
+      <p class="vg-meta"><span class="vg-live"><span data-draw="fig" data-source="kpis" data-field="month_label" data-row="0" data-fmt="text">—</span> so far · </span>Owner: <span data-draw="owner">—</span></p>
     </header>
-    <p class="vg-status" id="note-error" hidden>The numbers could not be loaded just now. Use Refresh numbers to try again.</p>
-    <p class="vg-status" id="note-empty" hidden>Waiting for the first Mangomint events. Numbers appear here as soon as appointments and sales start arriving.</p>
-    <p class="vg-status" id="note-early" hidden>Tracking started recently. Month-to-month changes need two months of data, and the lever rankings firm up after three.</p>
-    <p class="vg-status" id="note-baseline" hidden>The starting member count has not been entered yet, so the member total shows a dash.</p>
-    <div class="vg-cards" id="scorecard">
-      <div class="vg-card" id="card-new">
-        <p class="vg-k">New patients</p>
-        <p class="vg-big"><span data-draw="fig" data-source="kpis" data-field="new_clients" data-row="0">—</span></p>
-        <p class="vg-note"><span class="vg-cmp"><span data-draw="delta" data-source="kpis" data-field="new_clients_change" data-row="0">—</span> vs <span data-draw="fig" data-source="kpis" data-field="prev_month_label" data-row="0" data-fmt="text">—</span>. </span>First-ever visits in the month.</p>
-        <button type="button" class="vg-link" data-go="new-patients">Open New patients</button>
-      </div>
-      <div class="vg-card" id="card-conv">
-        <p class="vg-k">New clients who joined</p>
-        <p class="vg-big"><span data-draw="fig" data-source="kpis" data-field="conv_pct" data-row="0" data-fmt="pct">—</span> <small>goal <span data-draw="goal" data-goal="conv">—</span></small></p>
-        <span class="vg-meter" data-draw="meter" data-goal="conv" data-source="kpis" data-field="conv_pct" data-row="0"></span>
-        <p class="vg-note"><span class="vg-cmp"><span data-draw="delta" data-source="kpis" data-field="conv_change_pts" data-row="0" data-fmt="pts">—</span> vs <span data-draw="fig" data-source="kpis" data-field="prev_month_label" data-row="0" data-fmt="text">—</span>. </span><span data-draw="fig" data-source="kpis" data-field="joined" data-row="0">—</span> bought a membership or package.</p>
-        <button type="button" class="vg-link" data-go="new-patients">Open New patients</button>
-      </div>
-      <div class="vg-card" id="card-members">
-        <p class="vg-k">Active members</p>
-        <p class="vg-big"><span data-draw="fig" data-source="kpis" data-field="members" data-row="0">—</span> <small>of <span data-draw="goal" data-goal="members">—</span></small></p>
-        <span class="vg-meter" data-draw="meter" data-goal="members" data-source="kpis" data-field="members" data-row="0"></span>
-        <p class="vg-note"><span class="vg-cmp"><span data-draw="delta" data-source="kpis" data-field="members_change" data-row="0">—</span> vs <span data-draw="fig" data-source="kpis" data-field="prev_month_label" data-row="0" data-fmt="text">—</span>. </span><span class="vg-need-members"><span data-draw="fig" data-source="kpis" data-field="members_to_goal" data-row="0">—</span> to go.</span></p>
-        <button type="button" class="vg-link" data-go="memberships">Open Memberships</button>
-      </div>
-      <div class="vg-card" id="card-rebook">
-        <p class="vg-k">Rebook rate</p>
-        <p class="vg-big"><span data-draw="fig" data-source="kpis" data-field="rebook_pct" data-row="0" data-fmt="pct">—</span></p>
-        <p class="vg-note"><span class="vg-cmp"><span data-draw="delta" data-source="kpis" data-field="rebook_change_pts" data-row="0" data-fmt="pts">—</span> vs <span data-draw="fig" data-source="kpis" data-field="prev_month_label" data-row="0" data-fmt="text">—</span>. </span>Visits where the client booked their next one.</p>
-        <button type="button" class="vg-link" data-go="providers">Open Providers</button>
-      </div>
-      <div class="vg-card" id="card-revenue">
-        <p class="vg-k">Revenue</p>
-        <p class="vg-big"><span data-draw="fig" data-source="kpis" data-field="revenue" data-row="0" data-fmt="money">—</span></p>
-        <p class="vg-note"><span class="vg-cmp"><span data-draw="delta" data-source="kpis" data-field="revenue_change_pct" data-row="0" data-fmt="pct">—</span> vs <span data-draw="fig" data-source="kpis" data-field="prev_month_label" data-row="0" data-fmt="text">—</span>. </span>All sales in the month.</p>
-        <button type="button" class="vg-link" data-go="revenue">Open Revenue</button>
-      </div>
-    </div>
-    <div class="vg-two">
-      <div class="vg-card" id="overview-levers">
-        <div class="vg-row"><h3 class="vg-h3">What to do next</h3><button type="button" class="vg-link" data-go="levers">See the actions</button></div>
-        <p class="vg-note">Levers ranked by estimated first-year revenue.</p>
-        <div class="vg-scroll">
-          <table class="vg-table vg-left" id="lever-table" data-source="levers" data-row-key="lever">
-            <thead><tr><th data-field="rank">#</th><th data-field="name">Lever</th><th data-field="impact">Worth a year</th></tr></thead>
-            <tbody data-draw="lever-rows"></tbody>
-          </table>
+    <p class="vg-status" id="note-error" hidden>The numbers could not be loaded. Use Refresh to try again.</p>
+    <p class="vg-status" id="note-empty" hidden>Waiting for the first Mangomint events.</p>
+    <p class="vg-status" id="note-early" hidden>Tracking started recently. Comparisons need two months; action rankings firm up after three.</p>
+    <p class="vg-status" id="note-baseline" hidden>Starting member count not entered yet.</p>
+    <div class="vg-card vg-goals" id="goals" data-draw="goal-rows" data-source="scorecard"></div>
+    <div class="vg-card" id="week">
+      <h3 class="vg-h3">This week</h3>
+      <div class="vg-week">
+        <div>
+          <p class="vg-k">New patients</p>
+          <p class="vg-big"><span data-draw="fig" data-source="week" data-field="new_clients" data-row="0">—</span></p>
+          <p class="vg-note">Last week <span data-draw="fig" data-source="week" data-field="last_new_clients" data-row="0">—</span></p>
+        </div>
+        <div>
+          <p class="vg-k">Joined</p>
+          <p class="vg-big"><span data-draw="fig" data-source="week" data-field="joined" data-row="0">—</span></p>
+          <p class="vg-note">Last week <span data-draw="fig" data-source="week" data-field="last_joined" data-row="0">—</span></p>
+        </div>
+        <div>
+          <p class="vg-k">Net new members</p>
+          <p class="vg-big"><span data-draw="fig" data-source="week" data-field="members_net" data-row="0">—</span></p>
+          <p class="vg-note">Last week <span data-draw="fig" data-source="week" data-field="last_members_net" data-row="0">—</span></p>
+        </div>
+        <div>
+          <p class="vg-k">Rebook rate</p>
+          <p class="vg-big"><span data-draw="fig" data-source="week" data-field="rebook_pct" data-row="0" data-fmt="pct">—</span></p>
+          <p class="vg-note">Last week <span data-draw="fig" data-source="week" data-field="last_rebook_pct" data-row="0" data-fmt="pct">—</span></p>
+        </div>
+        <div>
+          <p class="vg-k">Revenue</p>
+          <p class="vg-big"><span data-draw="fig" data-source="week" data-field="revenue" data-row="0" data-fmt="money">—</span></p>
+          <p class="vg-note">Last week <span data-draw="fig" data-source="week" data-field="last_revenue" data-row="0" data-fmt="money">—</span></p>
         </div>
       </div>
-      <div class="vg-card" id="overview-members">
-        <div class="vg-row"><h3 class="vg-h3">Road to <span data-draw="goal" data-goal="members">—</span> members</h3><button type="button" class="vg-link" data-go="memberships">Open Memberships</button></div>
-        <div class="vg-chart" id="overview-chart-members" data-draw="chart-members" data-source="monthly" data-label="Active members at the end of each month, against the goal">—</div>
+    </div>
+    <div class="vg-card" id="top-actions">
+      <div class="vg-row"><h3 class="vg-h3">Biggest levers</h3><button type="button" class="vg-link" data-go="actions">Open Actions</button></div>
+      <div class="vg-scroll">
+        <table class="vg-table vg-left" id="lever-table" data-source="levers" data-row-key="lever">
+          <thead><tr><th data-field="rank">#</th><th data-field="name">Lever</th><th data-field="impact">Worth a year</th></tr></thead>
+          <tbody data-draw="lever-rows"></tbody>
+        </table>
       </div>
     </div>
   </section>
 
-  <section class="vg-page" id="levers" hidden>
+  <section class="vg-page" id="actions" hidden>
     <header class="vg-page-head">
-      <p class="vg-crumb">Grow</p>
-      <h2 class="vg-title">Growth levers</h2>
-      <p class="vg-sub">The four moves most likely to grow the business, ranked by estimated first-year revenue and recalculated from the last three months. Each card says what to do. These are estimates for comparing levers, not forecasts.</p>
+      <h2 class="vg-title">Actions</h2>
+      <p class="vg-meta">Ranked by estimated yearly value, from the last three months.</p>
     </header>
     <div class="vg-levers">
       <article class="vg-card vg-lever" data-lever="new_patients" id="lever-new-patients">
         <p class="vg-rank">Lever <span data-draw="fig" data-source="levers" data-field="rank" data-where="lever=new_patients">—</span></p>
         <h3>Bring in more new patients</h3>
         <p class="vg-impact"><b data-draw="fig" data-source="levers" data-field="impact" data-where="lever=new_patients" data-fmt="money">—</b> a year</p>
-        <p>What <span data-draw="fig" data-source="levers" data-field="add_per_month" data-where="lever=new_patients">—</span> extra new patients a month are worth, from their visits plus the share who join at today's rate.</p>
+        <p class="vg-why">What <span data-draw="fig" data-source="levers" data-field="add_per_month" data-where="lever=new_patients">—</span> extra new patients a month are worth, from their visits plus the share who join at today's rate.</p>
         <span class="vg-do">Do this</span>
         <ul>
           <li>Ask every happy client for a Google review at checkout.</li>
@@ -266,7 +279,7 @@
         <p class="vg-rank">Lever <span data-draw="fig" data-source="levers" data-field="rank" data-where="lever=rebook">—</span></p>
         <h3>Rebook before they leave</h3>
         <p class="vg-impact"><b data-draw="fig" data-source="levers" data-field="impact" data-where="lever=rebook" data-fmt="money">—</b> a year</p>
-        <p><span data-draw="fig" data-source="levers" data-field="top_provider" data-where="lever=rebook" data-fmt="text">—</span> rebooks <span data-draw="fig" data-source="levers" data-field="top_pct" data-where="lever=rebook" data-fmt="pct">—</span> of visits against a clinic rate of <span data-draw="fig" data-source="levers" data-field="clinic_pct" data-where="lever=rebook" data-fmt="pct">—</span>. If everyone closed half that gap, it adds about <span data-draw="fig" data-source="levers" data-field="extra_visits" data-where="lever=rebook">—</span> visits a year.</p>
+        <p class="vg-why"><span data-draw="fig" data-source="levers" data-field="top_provider" data-where="lever=rebook" data-fmt="text">—</span> rebooks <span data-draw="fig" data-source="levers" data-field="top_pct" data-where="lever=rebook" data-fmt="pct">—</span> of visits against a clinic rate of <span data-draw="fig" data-source="levers" data-field="clinic_pct" data-where="lever=rebook" data-fmt="pct">—</span>. If everyone closed half that gap, it adds about <span data-draw="fig" data-source="levers" data-field="extra_visits" data-where="lever=rebook">—</span> visits a year.</p>
         <span class="vg-do">Do this</span>
         <ul>
           <li>Have your top rebooker show the team how they close a visit.</li>
@@ -278,7 +291,7 @@
         <p class="vg-rank">Lever <span data-draw="fig" data-source="levers" data-field="rank" data-where="lever=conversion">—</span></p>
         <h3>Convert new clients to members</h3>
         <p class="vg-impact"><b data-draw="fig" data-source="levers" data-field="impact" data-where="lever=conversion" data-fmt="money">—</b> a year</p>
-        <p>New clients join at <span data-draw="fig" data-source="levers" data-field="current_pct" data-where="lever=conversion" data-fmt="pct">—</span> over the last three months. Reaching <span data-draw="goal" data-goal="conv">—</span> means <span data-draw="fig" data-source="levers" data-field="extra_per_month" data-where="lever=conversion" data-fmt="dec1">—</span> more joiners every month.</p>
+        <p class="vg-why">New clients join at <span data-draw="fig" data-source="levers" data-field="current_pct" data-where="lever=conversion" data-fmt="pct">—</span> over the last three months. Reaching <span data-draw="goal" data-goal="conv">—</span> means <span data-draw="fig" data-source="levers" data-field="extra_per_month" data-where="lever=conversion" data-fmt="dec1">—</span> more joiners every month.</p>
         <span class="vg-do">Do this</span>
         <ul>
           <li>Show the member price beside the standard price at every first checkout.</li>
@@ -290,7 +303,7 @@
         <p class="vg-rank">Lever <span data-draw="fig" data-source="levers" data-field="rank" data-where="lever=retention">—</span></p>
         <h3>Keep the members you have</h3>
         <p class="vg-impact"><b data-draw="fig" data-source="levers" data-field="impact" data-where="lever=retention" data-fmt="money">—</b> a year</p>
-        <p>About <span data-draw="fig" data-source="levers" data-field="cancels_per_month" data-where="lever=retention" data-fmt="dec1">—</span> members cancel each month. Saving half of them keeps <span data-draw="fig" data-source="levers" data-field="saved_per_month" data-where="lever=retention" data-fmt="dec1">—</span> more a month.</p>
+        <p class="vg-why">About <span data-draw="fig" data-source="levers" data-field="cancels_per_month" data-where="lever=retention" data-fmt="dec1">—</span> members cancel each month. Saving half of them keeps <span data-draw="fig" data-source="levers" data-field="saved_per_month" data-where="lever=retention" data-fmt="dec1">—</span> more a month.</p>
         <span class="vg-do">Do this</span>
         <ul>
           <li>Call or text every member the day a cancel request comes in.</li>
@@ -301,132 +314,136 @@
     </div>
   </section>
 
-  <section class="vg-page" id="new-patients" hidden>
+  <section class="vg-page" id="patients" hidden>
     <header class="vg-page-head">
-      <p class="vg-crumb">Grow</p>
-      <h2 class="vg-title">New patients</h2>
-      <p class="vg-sub">The growth thesis: more first-time clients, and at least <span data-draw="goal" data-goal="conv">—</span> of them leaving with a membership or package. Latest month: <span data-draw="fig" data-source="kpis" data-field="month_label" data-row="0" data-fmt="text">—</span>.</p>
+      <h2 class="vg-title">Patients</h2>
+      <p class="vg-meta"><span data-draw="fig" data-source="kpis" data-field="month_label" data-row="0" data-fmt="text">—</span></p>
     </header>
     <div class="vg-cards">
-      <div class="vg-card" id="np-card-new">
+      <div class="vg-card" id="np-new">
         <p class="vg-k">New patients</p>
         <p class="vg-big"><span data-draw="fig" data-source="kpis" data-field="new_clients" data-row="0">—</span></p>
-        <p class="vg-note"><span class="vg-cmp"><span data-draw="delta" data-source="kpis" data-field="new_clients_change" data-row="0">—</span> vs <span data-draw="fig" data-source="kpis" data-field="prev_month_label" data-row="0" data-fmt="text">—</span>. </span>First-ever visits in the month.</p>
+        <p class="vg-note"><span class="vg-cmp"><span data-draw="delta" data-source="kpis" data-field="new_clients_change" data-row="0">—</span> vs <span data-draw="fig" data-source="kpis" data-field="prev_month_label" data-row="0" data-fmt="text">—</span></span></p>
       </div>
-      <div class="vg-card" id="np-card-conv">
-        <p class="vg-k">New clients who joined</p>
+      <div class="vg-card" id="np-conv">
+        <p class="vg-k">Joined a membership or package</p>
         <p class="vg-big"><span data-draw="fig" data-source="kpis" data-field="conv_pct" data-row="0" data-fmt="pct">—</span> <small>goal <span data-draw="goal" data-goal="conv">—</span></small></p>
-        <span class="vg-meter" data-draw="meter" data-goal="conv" data-source="kpis" data-field="conv_pct" data-row="0"></span>
-        <p class="vg-note"><span class="vg-cmp"><span data-draw="delta" data-source="kpis" data-field="conv_change_pts" data-row="0" data-fmt="pts">—</span> vs <span data-draw="fig" data-source="kpis" data-field="prev_month_label" data-row="0" data-fmt="text">—</span>. </span><span data-draw="fig" data-source="kpis" data-field="joined" data-row="0">—</span> bought a membership or package.</p>
+        <p class="vg-note"><span class="vg-cmp"><span data-draw="delta" data-source="kpis" data-field="conv_change_pts" data-row="0" data-fmt="pts">—</span> vs <span data-draw="fig" data-source="kpis" data-field="prev_month_label" data-row="0" data-fmt="text">—</span></span></p>
+      </div>
+      <div class="vg-card" id="np-online">
+        <p class="vg-k">Booked online</p>
+        <p class="vg-big"><span data-draw="fig" data-source="kpis" data-field="online_pct" data-row="0" data-fmt="pct">—</span></p>
+        <p class="vg-note">Share of visits this month</p>
       </div>
     </div>
     <div class="vg-two">
       <div class="vg-card" id="card-chart-new">
-        <h3 class="vg-h3">New patients each month</h3>
+        <h3 class="vg-h3">New patients by month</h3>
         <ul class="vg-legend"><li><i data-swatch="0"></i>Joined a membership</li><li><i data-swatch="1"></i>Bought a package</li><li><i data-swatch="muted"></i>Neither yet</li></ul>
         <div class="vg-chart" id="chart-new" data-draw="chart-new" data-source="monthly" data-label="New patients each month, split by whether they joined a membership, bought a package, or neither">—</div>
       </div>
       <div class="vg-card" id="card-chart-conv">
-        <h3 class="vg-h3">Share of new clients who joined</h3>
-        <p class="vg-note">Membership or package bought by a first-time client, as a share of all first-time clients that month.</p>
+        <h3 class="vg-h3">Share who joined</h3>
         <div class="vg-chart" id="chart-conv" data-draw="chart-conv" data-source="trend" data-label="Share of new clients who joined a membership or package each month, against the goal">—</div>
       </div>
     </div>
-    <div class="vg-card" id="np-providers">
-      <div class="vg-row"><h3 class="vg-h3">Who converts new clients best?</h3><button type="button" class="vg-link" data-go="providers">Open Providers</button></div>
-      <p class="vg-note">The Providers page shows each provider's new patients and the share who joined, over the last 90 days.</p>
+    <div class="vg-card" id="card-chart-sources">
+      <h3 class="vg-h3">Where new patients come from, last 90 days</h3>
+      <div class="vg-chart vg-chart-short" id="chart-sources" data-draw="chart-sources" data-source="sources" data-label="New patients by referral source over the last 90 days">—</div>
     </div>
   </section>
 
-  <section class="vg-page" id="memberships" hidden>
+  <section class="vg-page" id="members" hidden>
     <header class="vg-page-head">
-      <p class="vg-crumb">Grow</p>
-      <h2 class="vg-title">Memberships</h2>
-      <p class="vg-sub">Progress toward <span data-draw="goal" data-goal="members">—</span> active members. Latest month: <span data-draw="fig" data-source="kpis" data-field="month_label" data-row="0" data-fmt="text">—</span>.</p>
+      <h2 class="vg-title">Members</h2>
+      <p class="vg-meta"><span data-draw="fig" data-source="kpis" data-field="month_label" data-row="0" data-fmt="text">—</span></p>
     </header>
     <div class="vg-cards">
-      <div class="vg-card" id="mem-card-members">
+      <div class="vg-card" id="mem-active">
         <p class="vg-k">Active members</p>
         <p class="vg-big"><span data-draw="fig" data-source="kpis" data-field="members" data-row="0">—</span> <small>of <span data-draw="goal" data-goal="members">—</span></small></p>
-        <span class="vg-meter" data-draw="meter" data-goal="members" data-source="kpis" data-field="members" data-row="0"></span>
-        <p class="vg-note"><span class="vg-cmp"><span data-draw="delta" data-source="kpis" data-field="members_change" data-row="0">—</span> vs <span data-draw="fig" data-source="kpis" data-field="prev_month_label" data-row="0" data-fmt="text">—</span>. </span><span class="vg-need-members"><span data-draw="fig" data-source="kpis" data-field="members_to_goal" data-row="0">—</span> to go.</span></p>
+        <p class="vg-note"><span class="vg-need-members"><span data-draw="fig" data-source="kpis" data-field="members_to_goal" data-row="0">—</span> to go</span></p>
       </div>
-      <div class="vg-card" id="mem-card-starts">
-        <p class="vg-k">Joined this month</p>
+      <div class="vg-card" id="mem-starts">
+        <p class="vg-k">Joined</p>
         <p class="vg-big"><span data-draw="fig" data-source="kpis" data-field="membership_starts" data-row="0">—</span></p>
-        <p class="vg-note">New memberships started in the month, from new and existing clients.</p>
+        <p class="vg-note">This month</p>
       </div>
-      <div class="vg-card" id="mem-card-cancels">
-        <p class="vg-k">Cancelled this month</p>
+      <div class="vg-card" id="mem-cancels">
+        <p class="vg-k">Cancelled</p>
         <p class="vg-big"><span data-draw="fig" data-source="kpis" data-field="membership_cancels" data-row="0">—</span></p>
-        <p class="vg-note">Memberships cancelled in the month.</p>
+        <p class="vg-note">This month</p>
       </div>
-      <div class="vg-card" id="mem-card-recurring">
+      <div class="vg-card" id="mem-dues">
         <p class="vg-k">Membership dues</p>
         <p class="vg-big"><span data-draw="fig" data-source="kpis" data-field="recurring_revenue" data-row="0" data-fmt="money">—</span></p>
-        <p class="vg-note">Recurring membership revenue collected in the month.</p>
+        <p class="vg-note">This month</p>
       </div>
     </div>
     <div class="vg-card" id="card-chart-members">
-      <h3 class="vg-h3">Active members at month end</h3>
+      <h3 class="vg-h3">Road to <span data-draw="goal" data-goal="members">—</span></h3>
       <div class="vg-chart" id="chart-members" data-draw="chart-members" data-source="monthly" data-label="Active members at the end of each month, against the goal">—</div>
-      <p class="vg-pace">At the current pace of <b data-draw="fig" data-source="pace" data-field="net_per_month" data-row="0" data-fmt="dec1">—</b> net new members a month, the goal arrives around <b data-draw="fig" data-source="pace" data-field="eta" data-row="0" data-fmt="text">—</b>. Hitting the conversion goal lifts that to <b data-draw="fig" data-source="pace" data-field="net_per_month_at_goal" data-row="0" data-fmt="dec1">—</b> a month and brings it forward to <b data-draw="fig" data-source="pace" data-field="eta_at_goal" data-row="0" data-fmt="text">—</b>.</p>
+      <p class="vg-pace">At <b data-draw="fig" data-source="pace" data-field="net_per_month" data-row="0" data-fmt="dec1">—</b> net new members a month, the goal arrives around <b data-draw="fig" data-source="pace" data-field="eta" data-row="0" data-fmt="text">—</b>. At the conversion goal: <b data-draw="fig" data-source="pace" data-field="eta_at_goal" data-row="0" data-fmt="text">—</b>.</p>
     </div>
   </section>
 
   <section class="vg-page" id="revenue" hidden>
     <header class="vg-page-head">
-      <p class="vg-crumb">Perform</p>
       <h2 class="vg-title">Revenue</h2>
-      <p class="vg-sub">Where the money comes from, by type and by item. Latest month: <span data-draw="fig" data-source="kpis" data-field="month_label" data-row="0" data-fmt="text">—</span>.</p>
+      <p class="vg-meta"><span data-draw="fig" data-source="kpis" data-field="month_label" data-row="0" data-fmt="text">—</span></p>
     </header>
     <div class="vg-cards">
-      <div class="vg-card" id="rev-card-revenue">
+      <div class="vg-card" id="rev-total">
         <p class="vg-k">Revenue</p>
         <p class="vg-big"><span data-draw="fig" data-source="kpis" data-field="revenue" data-row="0" data-fmt="money">—</span></p>
-        <p class="vg-note"><span class="vg-cmp"><span data-draw="delta" data-source="kpis" data-field="revenue_change_pct" data-row="0" data-fmt="pct">—</span> vs <span data-draw="fig" data-source="kpis" data-field="prev_month_label" data-row="0" data-fmt="text">—</span>. </span>All sales in the month.</p>
+        <p class="vg-note"><span class="vg-cmp"><span data-draw="delta" data-source="kpis" data-field="revenue_change_pct" data-row="0" data-fmt="pct">—</span> vs <span data-draw="fig" data-source="kpis" data-field="prev_month_label" data-row="0" data-fmt="text">—</span></span></p>
       </div>
-      <div class="vg-card" id="rev-card-ticket">
-        <p class="vg-k">Average spend per visit</p>
+      <div class="vg-card" id="rev-ticket">
+        <p class="vg-k">Average per visit</p>
         <p class="vg-big"><span data-draw="fig" data-source="kpis" data-field="avg_ticket" data-row="0" data-fmt="money">—</span></p>
-        <p class="vg-note">Service and product revenue divided by <span data-draw="fig" data-source="kpis" data-field="visits" data-row="0">—</span> visits in the month.</p>
       </div>
-      <div class="vg-card" id="rev-card-recurring">
+      <div class="vg-card" id="rev-dues">
         <p class="vg-k">Membership dues</p>
         <p class="vg-big"><span data-draw="fig" data-source="kpis" data-field="recurring_revenue" data-row="0" data-fmt="money">—</span></p>
-        <p class="vg-note">Recurring membership revenue collected in the month.</p>
+      </div>
+      <div class="vg-card" id="rev-discounts">
+        <p class="vg-k">Discounts given</p>
+        <p class="vg-big"><span data-draw="fig" data-source="kpis" data-field="discounts" data-row="0" data-fmt="money">—</span></p>
       </div>
     </div>
     <div class="vg-two">
       <div class="vg-card" id="card-chart-revenue">
-        <h3 class="vg-h3">Revenue by type, each month</h3>
+        <h3 class="vg-h3">Revenue by type</h3>
         <ul class="vg-legend"><li><i data-swatch="0"></i>Services</li><li><i data-swatch="1"></i>Products</li><li><i data-swatch="2"></i>Memberships</li><li><i data-swatch="3"></i>Packages</li><li><i data-swatch="4"></i>Gift cards</li></ul>
         <div class="vg-chart" id="chart-revenue" data-draw="chart-revenue" data-source="monthly" data-label="Monthly revenue split into services, products, memberships, packages and gift cards">—</div>
       </div>
       <div class="vg-card" id="card-chart-sellers">
-        <h3 class="vg-h3">Top 10 services and products, last 90 days</h3>
+        <h3 class="vg-h3">Top sellers, last 90 days</h3>
         <ul class="vg-legend"><li><i data-swatch="0"></i>Service</li><li><i data-swatch="1"></i>Product</li></ul>
         <div class="vg-chart" id="chart-sellers" data-draw="chart-sellers" data-source="sellers" data-label="Top ten services and products by revenue over the last 90 days">—</div>
       </div>
     </div>
   </section>
 
-  <section class="vg-page" id="providers" hidden>
+  <section class="vg-page" id="team" hidden>
     <header class="vg-page-head">
-      <p class="vg-crumb">Perform</p>
-      <h2 class="vg-title">Providers</h2>
-      <p class="vg-sub">Rebooking and new-client conversion by provider over the last 90 days. Rebook rate is the share of completed visits where the client booked their next appointment.</p>
+      <h2 class="vg-title">Team</h2>
+      <p class="vg-meta">Last 90 days</p>
     </header>
     <div class="vg-cards">
-      <div class="vg-card" id="prov-card-clinic">
+      <div class="vg-card" id="team-clinic">
         <p class="vg-k">Clinic rebook rate</p>
         <p class="vg-big"><span data-draw="fig" data-source="levers" data-field="clinic_pct" data-where="lever=rebook" data-fmt="pct">—</span></p>
-        <p class="vg-note">All providers together, last 90 days.</p>
       </div>
-      <div class="vg-card" id="prov-card-top">
+      <div class="vg-card" id="team-top">
         <p class="vg-k">Top rebooker</p>
         <p class="vg-big"><span data-draw="fig" data-source="levers" data-field="top_pct" data-where="lever=rebook" data-fmt="pct">—</span></p>
-        <p class="vg-note"><span data-draw="fig" data-source="levers" data-field="top_provider" data-where="lever=rebook" data-fmt="text">—</span> sets the bar for the team.</p>
+        <p class="vg-note"><span data-draw="fig" data-source="levers" data-field="top_provider" data-where="lever=rebook" data-fmt="text">—</span></p>
+      </div>
+      <div class="vg-card" id="team-cancel">
+        <p class="vg-k">Cancellations</p>
+        <p class="vg-big"><span data-draw="fig" data-source="kpis" data-field="cancel_pct" data-row="0" data-fmt="pct">—</span></p>
+        <p class="vg-note">Of appointments this month</p>
       </div>
     </div>
     <div class="vg-card" id="card-rebook-providers">
@@ -443,7 +460,7 @@
             <th data-field="revenue">Revenue</th>
             <th data-field="rebook_pct">Rebook rate</th>
             <th data-field="new_clients">New patients</th>
-            <th data-field="conv_pct">New clients who joined</th>
+            <th data-field="conv_pct">Joined</th>
           </tr></thead>
           <tbody data-draw="provider-rows"></tbody>
         </table>
@@ -453,28 +470,23 @@
 
   <section class="vg-page vg-guide" id="guide" hidden>
     <header class="vg-page-head">
-      <p class="vg-crumb">Help</p>
-      <h2 class="vg-title">How to read this</h2>
-      <p class="vg-sub">What each number means, and what the lever estimates assume.</p>
+      <h2 class="vg-title">Definitions</h2>
     </header>
     <div class="vg-card">
       <dl>
-        <dt>New patient</dt><dd>A client whose first-ever appointment falls in the month.</dd>
-        <dt>New clients who joined</dt><dd>First-time clients who bought a membership or a package, divided by all first-time clients in the same period. The goal is <span data-draw="goal" data-goal="conv">—</span>.</dd>
-        <dt>Rebook rate</dt><dd>Completed visits where the client booked another appointment, divided by all completed visits.</dd>
-        <dt>Active members</dt><dd>Membership starts minus cancels, counted at month end. The goal is <span data-draw="goal" data-goal="members">—</span>.</dd>
-        <dt>Green and red changes</dt><dd>Each change compares the latest month with the month before. Green means the number moved the right way.</dd>
-        <dt>Lever estimates</dt><dd>Each uses the last three months as its baseline. A new member is valued at the average monthly dues per member, a visit at the average spend per visit, and members added through the year are counted from the month they join. Package revenue from extra joiners, member spend above dues, and overlap between levers are left out, so treat the figures as a way to rank levers, not as a forecast.</dd>
-        <dt>Rebook timing</dt><dd>A visit counts as rebooked when the client's next appointment is booked by the end of the day after the visit.</dd>
-        <dt>The current month</dt><dd>The latest month is still in progress, so its totals grow until the month ends.</dd>
-        <dt>Joining window</dt><dd>A new client counts as having joined if they buy a membership or package within 30 days of their first visit.</dd>
-        <dt>Not in this app</dt><dd>Costs, profit and ad spend, because Mangomint does not send them.</dd>
+        <dt>On track, At risk, Behind</dt><dd>Monthly totals are compared with the share of the month that has passed. Rates are compared with their goal. At risk means within 15% of where it should be.</dd>
+        <dt>New patient</dt><dd>A client whose first-ever appointment falls in the period.</dd>
+        <dt>Joined</dt><dd>A new client who buys a membership or package within 30 days of their first visit.</dd>
+        <dt>Rebook rate</dt><dd>Visits where the client's next appointment is booked by the end of the following day.</dd>
+        <dt>Active members</dt><dd>The starting count, plus memberships started, minus memberships cancelled.</dd>
+        <dt>Cancellations</dt><dd>Cancelled appointments as a share of all appointments in the month.</dd>
+        <dt>Yearly value of a lever</dt><dd>An estimate from the last three months, for ranking levers against each other. Not a forecast.</dd>
+        <dt>Not included</dt><dd>Costs, profit and ad spend. Mangomint does not send them.</dd>
       </dl>
     </div>
   </section>
   </main>
 </div></div>
-
 <script src="d3.min.js"></script>
 <script src="shim.js"></script>
 <script src="app.js"></script>

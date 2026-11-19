@@ -98,6 +98,8 @@
       return;
     }
     state.raw = await res.json();
+    window.VG_GOALS = state.raw.goals || {};
+    window.VG_TODAY = state.raw.today || null;
     state.status = 'ok';
     keepCode(code);
     showApp();
