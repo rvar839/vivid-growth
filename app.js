@@ -261,7 +261,7 @@
     description: 'The last finished week, its change from the week before, and how many finished weeks reached the weekly revenue goal.',
     inputs: ['weekly'],
     fn: (weekly) => {
-      const goal = +(((window.VG_GOALS || {}).weekly || {}).revenue ?? 20000);
+      const goal = +(((window.VG_GOALS || {}).weekly || {}).revenue ?? 40000);
       const done = weekly.filter((w) => !!window.VG_TODAY && w.week_end < window.VG_TODAY);
       const last = done[done.length - 1], prev = done[done.length - 2];
       if (!last) return [];
@@ -342,7 +342,7 @@
   const pctOf = (a, b) => (+b ? (+a / +b) * 100 : null);
   const pctFmt = (v) => Math.round(v) + '%';
   const ALL_KPIS = [
-    { key: 'revenue', label: 'Revenue', how: 'above', bench: 20000, basic: true, fmt: money, val: (w) => +w.revenue },
+    { key: 'revenue', label: 'Revenue', how: 'above', bench: 40000, basic: true, fmt: money, val: (w) => +w.revenue },
     { key: 'new_clients', label: 'New clients showed', how: 'above', bench: 4, basic: true, fmt: int, val: (w) => +w.new_clients },
     { key: 'conversion', label: 'New client membership/package sales %', how: 'above', bench: 40, basic: true, fmt: pctFmt, val: (w) => pctOf(w.joined, w.new_clients) ?? 0 }, // no new clients counts as 0%, as on the team's sheet
     { key: 'rebook', label: 'Rebook rate', how: 'min', bench: 60, fmt: pctFmt, val: (w) => pctOf(w.visits_rebooked, w.visits) },
@@ -651,7 +651,7 @@
   });
   dash.draw('chart-week-revenue', (el) => {
     const d = rowsOf(el, ['rev_weeks', 'rev_headline']); if (!d) return;
-    const rows = d[0], goal = d[1][0] ? d[1][0].goal : 20000;
+    const rows = d[0], goal = d[1][0] ? d[1][0].goal : 40000;
     const f = frame(el, 300);
     const y = d3.scaleLinear().domain([0, Math.max(goal * 1.15, d3.max(rows, (r) => r.revenue) * 1.12)]).nice(4);
     const ml = widest(f.svg, y.ticks(4).map(thousands)) + 12, top = 16, base = f.h - 44;
