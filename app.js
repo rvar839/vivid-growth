@@ -389,7 +389,7 @@
     kpis.forEach((k) => {
       const tr = node('tr'), bench = kpiBench(k), benchText = kpiText(k, bench);
       if (ranked) tr.append(node('td', 'vg-rankcol', String(ALL_KPIS.indexOf(k) + 1)));
-      const name = node('th', null, k.label);
+      const name = node('th', null, k.label.replace('/', '/\u200b')); // lets a long label wrap after the slash
       if (narrow) name.append(node('span', 'vg-bench-under', benchText));
       tr.append(name);
       if (!narrow) tr.append(node('td', 'vg-bench', benchText));
@@ -414,6 +414,57 @@
     const judged = kpis.map((k) => ({ k, v: kpiVal(k, last, all[all.indexOf(last) - 1]), b: kpiBench(k) })).filter((x) => x.v != null && x.b != null);
     el.textContent = `Reported ${weekDay(last.report_date || last.week_end)}: ${judged.filter((x) => kpiHit(x.k, x.v, x.b)).length} of ${judged.length} benchmarks hit`;
   }
+  // ---------- one table per provider: their own numbers, week by week ----------
+  const benchFor = (key) => kpiBench(ALL_KPIS.find((k) => k.key === key)); // providers are held to the same benchmarks as the clinic
+  const PROVIDER_KPIS = [
+    { label: 'Rebook rate', how: 'min', bench: () => benchFor('rebook'), fmt: pctFmt, val: (w) => pctOf(w.rebooked, w.visits) },
+    { label: 'Visits with a product sold', how: 'min', bench: () => benchFor('product_attach'), fmt: pctFmt, val: (w) => pctOf(w.service_sales_with_product, w.service_sales) },
+    { label: 'Product sales', how: 'min', bench: () => null, fmt: money, val: (w) => +w.product_revenue },
+    { label: 'Packages sold', how: 'min', bench: () => null, fmt: int, val: (w) => +w.packages_sold },
+    { label: 'New client membership/package sales %', how: 'above', bench: () => benchFor('conversion'), fmt: pctFmt, val: (w) => pctOf(w.new_joined, w.new_clients) },
+    { label: 'Visits', how: 'min', bench: () => null, fmt: int, val: (w) => +w.visits },
+    { label: 'Revenue', how: 'min', bench: () => null, fmt: money, val: (w) => +w.revenue },
+  ];
+  dash.draw('provider-weeks', (el) => {
+    const s = dash.data('provider_weekly');
+    const rows = s.status === 'ok' ? s.data : [];
+    if (!rows.length) { el.textContent = s.status === 'ok' ? 'No provider activity yet' : '—'; return; }
+    const narrow = el.clientWidth < 520;
+    const node = (tag, cls, text) => { const n = document.createElement(tag); if (cls) n.className = cls; if (text != null) n.textContent = text; return n; };
+    const byProvider = d3.group(rows, (r) => r.provider);
+    const cards = [...byProvider.keys()].sort().map((name) => {
+      const weeks = byProvider.get(name).slice().sort((a, b) => d3.ascending(a.week_start, b.week_start)).slice(narrow ? -3 : -6);
+      const card = node('div', 'vg-card');
+      card.append(node('h3', 'vg-h3', name));
+      const scroll = node('div', 'vg-scroll'), table = node('table', 'vg-wk vg-wk-compact');
+      const head = node('tr');
+      head.append(node('th', null, 'KPI'));
+      if (!narrow) head.append(node('th', null, 'Benchmark'));
+      for (const w of weeks) head.append(node('th', weekDone(w) ? null : 'vg-now', weekDone(w) ? weekDay(w.report_date) : narrow ? 'Now' : 'This week'));
+      const thead = node('thead'); thead.append(head);
+      const tbody = node('tbody');
+      for (const k of PROVIDER_KPIS) {
+        const tr = node('tr'), bench = k.bench(), benchText = kpiText(k, bench);
+        const label = node('th', null, k.label.replace('/', '/\u200b')); // lets a long label wrap after the slash
+        if (narrow && bench != null) label.append(node('span', 'vg-bench-under', benchText));
+        tr.append(label);
+        if (!narrow) tr.append(node('td', 'vg-bench', benchText));
+        for (const w of weeks) {
+          const v = k.val(w);
+          const hit = v != null && bench != null && kpiHit(k, v, bench);
+          const cls = v == null || bench == null ? '' : weekDone(w) ? (hit ? ' vg-hit' : ' vg-miss') : hit ? ' vg-hit' : '';
+          tr.append(node('td', 'vg-val' + cls + (weekDone(w) ? '' : ' vg-now'), v == null ? '—' : k.fmt(v)));
+        }
+        tbody.append(tr);
+      }
+      table.append(thead, tbody);
+      scroll.append(table);
+      card.append(scroll);
+      return card;
+    });
+    el.replaceChildren(...cards);
+  });
+
   const REPORT_KPIS = REPORT_KEYS.map((key) => ALL_KPIS.find((k) => k.key === key));
   dash.draw('week-table', (el) => weekTable(el, REPORT_KPIS, false));
   dash.draw('week-summary', (el) => weekSummary(el, REPORT_KPIS));

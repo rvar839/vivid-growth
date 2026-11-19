@@ -164,8 +164,13 @@
   .vg-wk-ranked th, .vg-wk-ranked td { padding-top: var(--cds-pad-sm); padding-bottom: var(--cds-pad-sm); }
   .vg-wk-ranked tbody th, .vg-wk-ranked thead th:nth-child(2) { text-align: left; white-space: normal; padding-left: 0; }
   .vg-wk-ranked tbody th { font-weight: var(--cds-font-weight-medium); min-width: 120px; }
+  .vg-prov-list { display: grid; gap: var(--cds-gap-md); color: var(--color-fg-muted); }
+  .vg-prov-list .vg-card { color: var(--color-fg); }
+  .vg-block { display: grid; gap: var(--cds-gap-sm); }
+  .vg-wk-compact td.vg-val { font-size: var(--cds-font-size-body); }
+  .vg-wk-compact th, .vg-wk-compact td { padding-top: var(--cds-pad-sm); padding-bottom: var(--cds-pad-sm); }
   .vg-bench-under { display: block; font-weight: 400; font-size: var(--cds-font-size-caption); color: var(--color-fg-muted); }
-  @container (max-width: 620px) { .vg-wk-ranked tbody th { min-width: 0; } .vg-wk-ranked th, .vg-wk-ranked td { padding-left: 4px; padding-right: 4px; } .vg-wk td.vg-rankcol { width: 1.4em; } .vg-wk th:first-child { min-width: 0; } .vg-wk th, .vg-wk td { padding: var(--cds-pad-md) var(--cds-pad-sm); } }
+  @container (max-width: 620px) { .vg-wk tbody th { overflow-wrap: anywhere; } .vg-wk-compact th, .vg-wk-compact td { padding-left: 4px; padding-right: 4px; } .vg-wk-ranked tbody th { min-width: 0; } .vg-wk-ranked th, .vg-wk-ranked td { padding-left: 4px; padding-right: 4px; } .vg-wk td.vg-rankcol { width: 1.4em; } .vg-wk th:first-child { min-width: 0; } .vg-wk th, .vg-wk td { padding: var(--cds-pad-md) var(--cds-pad-sm); } }
   .vg-goal { display: grid; grid-template-columns: minmax(130px, 1.3fr) minmax(90px, auto) minmax(110px, 1fr) minmax(80px, 1.4fr) 104px; align-items: center; gap: var(--cds-gap-md); padding: var(--cds-pad-md) 0; border-bottom: 1px solid var(--color-border-line); }
   .vg-goal:last-child { border-bottom: 0; }
   .vg-goal-name { font-weight: var(--cds-font-weight-medium); }
@@ -422,7 +427,7 @@
   <section class="vg-page" id="team" hidden>
     <header class="vg-page-head">
       <h2 class="vg-title">Team</h2>
-      <p class="vg-meta">Last 90 days</p>
+      <p class="vg-meta">Provider by provider</p>
     </header>
     <div class="vg-cards">
       <div class="vg-card" id="team-clinic">
@@ -440,6 +445,11 @@
         <p class="vg-note">Of appointments this month</p>
       </div>
     </div>
+    <div class="vg-block" id="provider-weeks">
+      <h3 class="vg-h3">Each provider, week by week</h3>
+      <div class="vg-prov-list" data-draw="provider-weeks" data-source="provider_weekly"></div>
+    </div>
+    <h3 class="vg-h3">All providers, last 90 days</h3>
     <div class="vg-card" id="card-rebook-providers">
       <h3 class="vg-h3">Rebook rate by provider</h3>
       <div class="vg-chart vg-chart-short" id="chart-rebook" data-draw="chart-rebook" data-source="provider_stats levers" data-label="Rebook rate for each provider over the last 90 days, against the clinic rate">—</div>
@@ -488,6 +498,7 @@
         <dt>Cancellations</dt><dd>Cancelled appointments as a share of all appointments in the month.</dd>
         <dt>Next week's booked visits</dt><dd>Appointments already on the books for the following week, counted when the week closes on Friday night.</dd>
         <dt>Lowest provider rebook rate</dt><dd>The lowest rebook rate among providers with at least five visits that week.</dd>
+        <dt>Provider numbers</dt><dd>Sales are credited to the provider on the sale line. A new client's membership or package is credited to the provider of their first visit.</dd>
         <dt>Dashes in a week</dt><dd>The number could not be worked out for that week, for example a rate with no visits, or a week typed in from the earlier sheet.</dd>
         <dt>Yearly value of a lever</dt><dd>An estimate from the last three months, for ranking levers against each other. Not a forecast.</dd>
         <dt>Not included</dt><dd>Costs, profit and ad spend. Mangomint does not send them.</dd>
