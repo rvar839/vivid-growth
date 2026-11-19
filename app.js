@@ -242,6 +242,39 @@
     },
   });
 
+  dash.calc('rev_weeks', {
+    title: 'Weekly revenue',
+    description: 'Revenue for each week (Saturday to Friday) with its change from the week before.',
+    inputs: ['weekly'],
+    fn: (weekly) => weekly.map((w, i) => {
+      const prev = i ? +weekly[i - 1].revenue : 0;
+      return {
+        report_date: w.report_date || w.week_end,
+        revenue: +w.revenue,
+        done: !!window.VG_TODAY && w.week_end < window.VG_TODAY,
+        growth_pct: prev > 0 ? Math.round((+w.revenue / prev - 1) * 100) : null,
+      };
+    }),
+  });
+  dash.calc('rev_headline', {
+    title: 'Weekly revenue headline',
+    description: 'The last finished week, its change from the week before, and how many finished weeks reached the weekly revenue goal.',
+    inputs: ['weekly'],
+    fn: (weekly) => {
+      const goal = +(((window.VG_GOALS || {}).weekly || {}).revenue ?? 20000);
+      const done = weekly.filter((w) => !!window.VG_TODAY && w.week_end < window.VG_TODAY);
+      const last = done[done.length - 1], prev = done[done.length - 2];
+      if (!last) return [];
+      return [{
+        revenue: Math.round(+last.revenue),
+        growth_pct: prev && +prev.revenue > 0 ? Math.round((+last.revenue / +prev.revenue - 1) * 100) : null,
+        goal,
+        weeks_at_goal: done.filter((w) => +w.revenue >= goal).length,
+        weeks: done.length,
+      }];
+    },
+  });
+
   // ---------- small figures ----------
 
   const FORMATS = {
@@ -315,18 +348,23 @@
   const weekDay = (iso) => d3.utcFormat('%-m/%-d')(parseMonth(iso));
   dash.draw('week-table', (el) => {
     const s = dash.data('weekly');
-    const weeks = s.status === 'ok' ? s.data.slice(el.clientWidth < 520 ? -2 : -6) : []; // a phone shows last week and this week
+    const narrow = el.clientWidth < 520; // a phone shows the last two finished weeks and this week, with the benchmark under each label
+    const weeks = s.status === 'ok' ? s.data.slice(narrow ? -3 : -6) : [];
     if (!weeks.length) { el.textContent = s.status === 'ok' ? 'No weeks to show yet' : '—'; return; }
     const node = (tag, cls, text) => { const n = document.createElement(tag); if (cls) n.className = cls; if (text != null) n.textContent = text; return n; };
     const table = node('table', 'vg-wk');
     const head = node('tr');
-    head.append(node('th', null, 'KPI'), node('th', null, 'Benchmark'));
+    head.append(node('th', null, 'KPI'));
+    if (!narrow) head.append(node('th', null, 'Benchmark'));
     for (const w of weeks) head.append(node('th', weekDone(w) ? null : 'vg-now', weekDone(w) ? weekDay(w.report_date || w.week_end) : 'This week'));
     const thead = node('thead'); thead.append(head);
     const tbody = node('tbody');
     for (const k of WEEK_KPIS) {
       const tr = node('tr'), bench = weekBench(k);
-      tr.append(node('th', null, k.label), node('td', 'vg-bench', bench == null ? '—' : 'Above ' + k.fmt(bench)));
+      const benchText = bench == null ? '—' : 'Above ' + k.fmt(bench);
+      const name = node('th', null, k.label);
+      if (narrow) name.append(node('span', 'vg-bench-under', benchText)); else tr.append(name, node('td', 'vg-bench', benchText));
+      if (narrow) tr.append(name);
       for (const w of weeks) {
         const v = k.val(w);
         const hit = v != null && bench != null && v > bench;
@@ -525,6 +563,42 @@
       color: (r) => (r.type === 'Product' ? dash.colors[1] : dash.colors[0]),
       tip: (r) => [r.item, `${r.type}`, `Revenue: ${money(+r.revenue)}`, `Sold: ${int(+r.units)}`],
     });
+  });
+  dash.draw('chart-week-revenue', (el) => {
+    const d = rowsOf(el, ['rev_weeks', 'rev_headline']); if (!d) return;
+    const rows = d[0], goal = d[1][0] ? d[1][0].goal : 20000;
+    const f = frame(el, 300);
+    const y = d3.scaleLinear().domain([0, Math.max(goal * 1.15, d3.max(rows, (r) => r.revenue) * 1.12)]).nice(4);
+    const ml = widest(f.svg, y.ticks(4).map(thousands)) + 12, top = 16, base = f.h - 44;
+    y.range([base, top]);
+    const x = d3.scaleBand().domain(rows.map((r) => r.report_date)).range([ml, f.w - 4]).padding(0.3);
+    yGrid(f, y, ml, f.w - 4, thousands);
+    f.svg.append('line').attr('x1', ml).attr('x2', f.w - 4).attr('y1', y(goal)).attr('y2', y(goal))
+      .style('stroke', 'var(--color-ok)').style('stroke-dasharray', '5 4').style('stroke-width', 1.5);
+    const g = f.svg.append('g').selectAll('g').data(rows).join('g');
+    g.append('rect').attr('x', (r) => x(r.report_date)).attr('width', x.bandwidth()).attr('rx', 3)
+      .attr('y', (r) => y(r.revenue)).attr('height', (r) => Math.max(1, base - y(r.revenue)))
+      .style('fill', (r) => (r.revenue >= goal ? 'var(--color-ok)' : dash.colors[0])).style('opacity', (r) => (r.done ? 1 : 0.45));
+    f.svg.append('text').attr('class', 'vg-tick').attr('x', ml + 6).attr('y', y(goal) - 6).style('fill', 'var(--color-ok)')
+      .style('paint-order', 'stroke').style('stroke', 'var(--color-panel)').style('stroke-width', 4).style('stroke-linejoin', 'round').text(`Goal ${money(goal)}`);
+    const roomy = x.bandwidth() >= 30;
+    if (roomy) {
+      g.append('text').attr('class', 'vg-label').attr('text-anchor', 'middle').attr('x', (r) => x(r.report_date) + x.bandwidth() / 2)
+        .attr('y', (r) => y(r.revenue) - 6).text((r) => '$' + d3.format(',.1f')(r.revenue / 1000) + 'k');
+    }
+    const step = tickStep(f.w, rows.length);
+    const ticked = rows.filter((r, i) => (rows.length - 1 - i) % step === 0);
+    const tick = f.svg.append('g').selectAll('g').data(ticked).join('g')
+      .attr('transform', (r) => `translate(${x(r.report_date) + x.bandwidth() / 2},${base})`);
+    tick.append('text').attr('class', 'vg-tick').attr('text-anchor', 'middle').attr('y', 16).text((r) => (r.done ? weekDay(r.report_date) : 'This week'));
+    // week-over-week change under each finished week
+    tick.filter((r) => r.done && r.growth_pct != null).append('text').attr('class', 'vg-label').attr('text-anchor', 'middle').attr('y', 32)
+      .style('fill', (r) => (r.growth_pct >= 0 ? 'var(--color-ok)' : 'var(--color-bad)'))
+      .text((r) => (r.growth_pct > 0 ? '+' : r.growth_pct < 0 ? '−' : '') + int(Math.abs(r.growth_pct)) + '%');
+    hover(g.append('rect').attr('x', (r) => x(r.report_date) - x.step() * 0.15).attr('width', x.step())
+      .attr('y', top).attr('height', base - top).style('fill', 'transparent'), f,
+      (r) => [r.done ? `Week reported ${weekDay(r.report_date)}` : 'This week so far', `Revenue: ${money(r.revenue)}`,
+        ...(r.growth_pct != null ? [`Week over week: ${r.growth_pct > 0 ? '+' : ''}${r.growth_pct}%`] : []), `Goal: ${money(goal)}`]);
   });
   dash.draw('chart-sources', (el) => {
     const d = rowsOf(el, ['sources']); if (!d) return;

@@ -158,6 +158,9 @@
   .vg-wk .vg-now { background: var(--color-bg); }
   .vg-wk thead th.vg-now { color: var(--color-fg); }
   .vg-wk-note { margin-top: var(--cds-gap-sm); }
+  #chart-week-revenue { min-height: 300px; }
+  .vg-bench-under { display: block; font-weight: 400; font-size: var(--cds-font-size-caption); color: var(--color-fg-muted); }
+  @container (max-width: 620px) { .vg-wk th:first-child { min-width: 0; } .vg-wk th, .vg-wk td { padding: var(--cds-pad-md) var(--cds-pad-sm); } }
   .vg-goal { display: grid; grid-template-columns: minmax(130px, 1.3fr) minmax(90px, auto) minmax(110px, 1fr) minmax(80px, 1.4fr) 104px; align-items: center; gap: var(--cds-gap-md); padding: var(--cds-pad-md) 0; border-bottom: 1px solid var(--color-border-line); }
   .vg-goal:last-child { border-bottom: 0; }
   .vg-goal-name { font-weight: var(--cds-font-weight-medium); }
@@ -234,18 +237,11 @@
       <div class="vg-scroll" data-draw="week-table" data-source="weekly"></div>
       <p class="vg-note vg-wk-note" data-draw="week-note">Weeks run Saturday to Friday and are dated by the Saturday meeting.</p>
     </div>
-    <div class="vg-card" id="goals">
-      <h3 class="vg-h3">Goals</h3>
-      <div class="vg-goals" data-draw="goal-rows" data-source="scorecard"></div>
-    </div>
-    <div class="vg-card" id="top-actions">
-      <div class="vg-row"><h3 class="vg-h3">Biggest levers</h3><button type="button" class="vg-link" data-go="actions">Open Actions</button></div>
-      <div class="vg-scroll">
-        <table class="vg-table vg-left" id="lever-table" data-source="levers" data-row-key="lever">
-          <thead><tr><th data-field="rank">#</th><th data-field="name">Lever</th><th data-field="impact">Worth a year</th></tr></thead>
-          <tbody data-draw="lever-rows"></tbody>
-        </table>
-      </div>
+    <div class="vg-card" id="weekly-revenue">
+      <h3 class="vg-h3">Weekly revenue</h3>
+      <p class="vg-big"><span data-draw="fig" data-source="rev_headline" data-field="revenue" data-row="0" data-fmt="money">—</span> <small>last week</small></p>
+      <p class="vg-note"><span data-draw="delta" data-source="rev_headline" data-field="growth_pct" data-row="0" data-fmt="pct">—</span> week over week · <span data-draw="fig" data-source="rev_headline" data-field="weeks_at_goal" data-row="0">—</span> of <span data-draw="fig" data-source="rev_headline" data-field="weeks" data-row="0">—</span> weeks at <span data-draw="fig" data-source="rev_headline" data-field="goal" data-row="0" data-fmt="money">—</span> or more</p>
+      <div class="vg-chart" id="chart-week-revenue" data-draw="chart-week-revenue" data-source="rev_weeks rev_headline" data-label="Revenue for each week against the weekly goal, with the change from the week before">—</div>
     </div>
   </section>
 
