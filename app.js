@@ -362,7 +362,7 @@
     { key: 'source_recorded', label: 'New clients with a source recorded', how: 'min', bench: 90, fmt: pctFmt, val: (w) => pctOf(w.new_clients_with_source, w.new_clients) },
     { key: 'online', label: 'Booked online', how: 'min', bench: 40, fmt: pctFmt, val: (w) => pctOf(w.visits_booked_online, w.visits) },
   ];
-  const REPORT_KEYS = ['new_clients', 'conversion', 'revenue']; // the rows on the KPI Report, in the team's order
+  const REPORT_KEYS = ['new_clients', 'conversion', 'rebook', 'revenue']; // the rows on the KPI Report, in the team's order
   const kpiBench = (k) => { const b = ((window.VG_GOALS || {}).weekly || {})[k.key]; return b != null ? +b : k.bench; }; // a saved benchmark wins over the default
   const kpiText = (k, b) => (b == null ? '—' : k.how === 'above' ? 'Above ' + k.fmt(b) : k.fmt(b) + (k.how === 'max' ? ' or less' : ' or more'));
   const kpiHit = (k, v, b) => (k.how === 'above' ? v > b : k.how === 'max' ? v <= b : v >= b);
