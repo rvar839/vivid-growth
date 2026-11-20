@@ -431,13 +431,57 @@
     { label: 'Visits with a product sold', how: 'min', bench: () => benchFor('product_attach'), fmt: pctFmt, val: (w) => pctOf(w.service_sales_with_product, w.service_sales) },
     { label: 'Product sales', how: 'min', bench: () => null, fmt: money, val: (w) => +w.product_revenue },
     { label: 'Packages sold', how: 'min', bench: () => null, fmt: int, val: (w) => +w.packages_sold },
+    { label: 'Memberships started', how: 'min', bench: () => null, fmt: int, val: (w) => (window.VG_MEMBER_EVENTS ? +w.memberships_started : null) },
     { label: 'New client membership/package sales %', how: 'above', bench: () => benchFor('conversion'), fmt: pctFmt, val: (w) => pctOf(w.new_joined, w.new_clients) },
     { label: 'Visits', how: 'min', bench: () => null, fmt: int, val: (w) => +w.visits },
     { label: 'Revenue', how: 'min', bench: () => null, fmt: money, val: (w) => +w.revenue },
   ];
+  // What a provider and the operations lead should talk about, from the provider's last four weeks.
+  function coaching(name, last4) {
+    const sum = (k) => d3.sum(last4, (r) => +r[k] || 0);
+    const visits = sum('visits'), rebooked = sum('rebooked'), newC = sum('new_clients'), joined = sum('new_joined');
+    const packs = sum('packages_sold'), mems = sum('memberships_started'), rev = sum('revenue');
+    const bRebook = benchFor('rebook'), bConv = benchFor('conversion');
+    const rebookPct = visits ? (rebooked / visits) * 100 : null, convPct = newC ? (joined / newC) * 100 : null;
+    const seen = !!window.VG_MEMBER_EVENTS;
+    const tiles = mk('div', 'vg-tiles vg-tiles-coach');
+    tiles.append(
+      goalTile({ label: 'Rebook rate', value: rebookPct == null ? '—' : pctFmt(rebookPct), bench: `Benchmark: ${bRebook}% or more`, hit: rebookPct != null && rebookPct >= bRebook, share: rebookPct == null ? 0 : rebookPct / bRebook,
+        detail: visits ? `${int(rebooked)} of ${plural(visits, 'visit', 'visits')} rebooked` : 'No visits yet' }),
+      goalTile({ label: 'New clients who joined', value: convPct == null ? '—' : pctFmt(convPct), bench: `Benchmark: above ${bConv}%`, hit: convPct != null && convPct > bConv, share: convPct == null ? 0 : convPct / bConv,
+        detail: newC ? `${int(joined)} of ${plural(newC, 'new client', 'new clients')} joined` : 'No new clients seen yet' }),
+      goalTile({ label: 'Packages sold', value: int(packs), detail: packs ? 'Keep offering a series at checkout' : 'None yet' }),
+      goalTile({ label: 'Memberships started', value: seen ? int(mems) : '—', detail: seen ? 'Credited to the provider seen that day' : 'Starts counting when Mangomint sends its first membership event' }),
+      goalTile({ label: 'Revenue', value: money(rev), detail: visits ? `${money(rev / visits)} a visit` : '' }),
+    );
+    const points = [];
+    if (!visits) points.push(['plain', 'No visits tracked in the last four weeks.']);
+    else {
+      if (visits < 5) points.push(['plain', `Only ${plural(visits, 'visit', 'visits')} tracked so far, so read the rates as early signals.`]);
+      if (rebookPct < bRebook) points.push(['bad', `${int(visits - rebooked)} of ${plural(visits, 'client', 'clients')} left without a next visit (${pctFmt(rebookPct)} rebooked, benchmark ${bRebook}%). Book the next visit before they leave the room.`]);
+      else points.push(['ok', `Rebooking is at ${pctFmt(rebookPct)}, at or above the ${bRebook}% benchmark. Keep it there.`]);
+      if (newC && convPct <= bConv) points.push(['bad', `${int(newC - joined)} of ${plural(newC, 'new client', 'new clients')} did not buy a membership or package (${pctFmt(convPct)}, benchmark above ${bConv}%). Offer it at the first checkout.`]);
+      else if (newC) points.push(['ok', `${int(joined)} of ${plural(newC, 'new client', 'new clients')} joined (${pctFmt(convPct)}), above the ${bConv}% benchmark.`]);
+      if (!packs && visits >= 5) points.push(['bad', 'No packages sold in the last four weeks. Offer a series on any treatment that needs more than one visit.']);
+      else if (packs) points.push(['ok', `${plural(packs, 'package', 'packages')} sold in the last four weeks.`]);
+    }
+    const wrap = mk('div', 'vg-coach');
+    const head = mk('div', 'vg-row');
+    head.append(mk('h3', 'vg-h3 vg-coach-name', name), mk('p', 'vg-meta', 'Last four weeks'));
+    const talk = mk('div', 'vg-talk');
+    talk.append(mk('span', 'vg-do', 'Talk about'));
+    const ul = mk('ul');
+    for (const [tone, text] of points) ul.append(mk('li', 'vg-talk-' + tone, text));
+    talk.append(ul);
+    wrap.append(head, tiles, talk);
+    return wrap;
+  }
+
   dash.draw('provider-weeks', (el) => {
     const s = dash.data('provider_weekly');
-    const rows = s.status === 'ok' ? s.data : [];
+    const pm = dash.data('provider_memberships');
+    const credit = new Map((pm.status === 'ok' ? pm.data : []).map((r) => [r.provider + '|' + r.week_start, +r.memberships_started]));
+    const rows = (s.status === 'ok' ? s.data : []).map((r) => ({ ...r, memberships_started: credit.get(r.provider + '|' + r.week_start) || 0 }));
     if (!rows.length) { el.textContent = s.status === 'ok' ? 'No provider activity yet' : '—'; return; }
     const narrow = el.clientWidth < 520;
     const node = (tag, cls, text) => { const n = document.createElement(tag); if (cls) n.className = cls; if (text != null) n.textContent = text; return n; };
@@ -445,7 +489,8 @@
     const cards = [...byProvider.keys()].sort().map((name) => {
       const weeks = byProvider.get(name).slice().sort((a, b) => d3.ascending(a.week_start, b.week_start)).slice(narrow ? -3 : -6);
       const card = node('div', 'vg-card');
-      card.append(node('h3', 'vg-h3', name));
+      card.append(coaching(name, byProvider.get(name).slice().sort((a, b) => d3.ascending(a.week_start, b.week_start)).slice(-4)));
+      card.append(node('h3', 'vg-h3 vg-coach-sub', 'Week by week'));
       const scroll = node('div', 'vg-scroll'), table = node('table', 'vg-wk vg-wk-compact');
       const head = node('tr');
       head.append(node('th', null, 'KPI'));
@@ -729,6 +774,175 @@
       const tr = document.createElement('tr');
       tr.dataset.key = r.lever;
       for (const [k, f] of cols) { const td = document.createElement('td'); td.textContent = r[k] == null ? '—' : f(r[k]); tr.append(td); }
+      return tr;
+    }));
+  });
+
+  // ---------- the levers the team is asked to pull: weekly scoreboard, new clients, provider coaching ----------
+
+  const mk = (tag, cls, text) => { const n = document.createElement(tag); if (cls) n.className = cls; if (text != null) n.textContent = text; return n; };
+  const dayNum = (iso) => parseMonth(iso) / 864e5;
+  const shortDay = (iso) => d3.utcFormat('%b %-d')(parseMonth(iso));
+  const kpiOf = (key) => ALL_KPIS.find((k) => k.key === key);
+  const plural = (n, one, many) => `${int(n)} ${n === 1 ? one : many}`;
+  function meter(share, hit) {
+    const m = mk('span', 'vg-meter vg-meter-' + (hit ? 'hit' : 'go')), fill = mk('span');
+    fill.style.width = Math.max(0, Math.min(100, (share || 0) * 100)) + '%';
+    m.append(fill);
+    return m;
+  }
+  // one goal tile: label, big number, benchmark, progress bar and a plain line saying what is left
+  function goalTile({ label, value, bench, hit, share, detail, state }) {
+    const t = mk('div', 'vg-tile' + (hit ? ' vg-tile-hit' : ''));
+    const top = mk('div', 'vg-tile-top');
+    top.append(mk('p', 'vg-k', label));
+    if (state) top.append(mk('span', 'vg-chip vg-chip-' + (hit ? 'ok' : state === 'Missed' ? 'bad' : 'plain'), hit ? 'Hit' : state));
+    t.append(top, mk('p', 'vg-tile-big', value));
+    if (bench) t.append(mk('p', 'vg-note', bench));
+    if (share != null) t.append(meter(share, hit));
+    if (detail) t.append(mk('p', 'vg-note', detail));
+    return t;
+  }
+  const latestWeek = () => {
+    const s = dash.data('weekly');
+    const all = s.status === 'ok' ? s.data : [];
+    return { status: s.status, all, w: all[all.length - 1], done: all.filter(weekDone) };
+  };
+
+  dash.draw('scoreboard', (box) => {
+    const { status, all, w, done } = latestWeek();
+    if (!w) { box.textContent = status === 'ok' ? 'Waiting for the first week of numbers.' : '—'; return; }
+    const live = !weekDone(w), last = done[done.length - 1];
+    const goal = kpiBench(kpiOf('revenue')), rev = +w.revenue, hit = kpiHit(kpiOf('revenue'), rev, goal);
+    const daysLeft = live ? Math.max(1, dayNum(w.week_end) - dayNum(window.VG_TODAY || w.week_end) + 1) : 0;
+
+    const head = mk('div', 'vg-row');
+    head.append(mk('h3', 'vg-h3', live ? 'This week' : 'Latest week'),
+      mk('p', 'vg-meta', `${shortDay(w.week_start)} to ${shortDay(w.week_end)}` + (live ? ` · ${plural(daysLeft, 'day', 'days')} left` : '')));
+
+    const big = mk('p', 'vg-big vg-sb-big');
+    big.append(mk('span', hit ? 'vg-good' : null, money(rev)), mk('small', null, ` of ${money(goal)} weekly revenue goal`));
+    const line = mk('p', 'vg-sb-line');
+    if (hit) line.append(mk('b', 'vg-good', 'Goal reached'), document.createTextNode(` · ${money(rev - goal)} over`));
+    else {
+      line.append(mk('b', null, `${money(goal - rev)} to go`));
+      if (live) line.append(document.createTextNode(` · that is ${money((goal - rev) / daysLeft)} a day for the ${daysLeft === 1 ? 'last day' : daysLeft + ' days left'}`));
+    }
+    const atGoal = done.filter((x) => +x.revenue >= goal).length;
+    let streak = 0; for (let i = done.length - 1; i >= 0 && +done[i].revenue >= goal; i--) streak++;
+    const sub = mk('p', 'vg-note', last
+      ? `Last week closed at ${money(+last.revenue)}` + (live && rev > +last.revenue ? ', and this week is already ahead of it' : '')
+        + ` · ${int(atGoal)} of ${plural(done.length, 'finished week', 'finished weeks')} at ${money(goal)}` + (streak > 1 ? ` · ${streak} in a row` : '')
+      : 'This is the first tracked week.');
+
+    const prev = all[all.length - 2];
+    const state = live ? 'In progress' : 'Missed';
+    const tile = (key, label, detail) => {
+      const k = kpiOf(key), b = kpiBench(k), v = kpiVal(k, w, prev);
+      const ok = v != null && b != null && kpiHit(k, v, b);
+      return goalTile({ label, value: v == null ? '—' : k.fmt(v), bench: 'Goal: ' + kpiText(k, b).toLowerCase(), hit: ok, share: v == null || !b ? 0 : v / b, detail: detail(v, b, ok), state: v == null ? null : state });
+    };
+    const need = (v, b, how) => Math.max(0, (how === 'above' ? Math.floor(b) + 1 : Math.ceil(b)) - v);
+    const tiles = mk('div', 'vg-tiles');
+    tiles.append(
+      tile('new_clients', 'New clients showed', (v, b, ok) => (ok ? 'Goal reached for the week.' : `${plural(need(v, b, 'above'), 'more new client', 'more new clients')} to hit it.`)),
+      tile('conversion', 'New clients who joined', () => (+w.new_clients ? `${int(+w.joined)} of ${plural(+w.new_clients, 'new client', 'new clients')} bought a membership or package.` : 'No new clients have come in yet this week.')),
+      tile('rebook', 'Rebook rate', () => (+w.visits ? `${int(+w.visits_rebooked)} of ${plural(+w.visits, 'visit', 'visits')} left with a next visit booked.` : 'No visits yet this week.')),
+      tile('packages', 'Packages sold', (v, b, ok) => (ok ? 'Goal reached for the week.' : `${plural(need(v, b, 'min'), 'more package', 'more packages')} to hit it.`)),
+    );
+    box.replaceChildren(head, big, meter(rev / goal, hit), line, sub, tiles);
+  });
+
+  // ---------- new clients: who they are and whether they joined ----------
+
+  const OUTCOMES = {
+    membership: ['Member', 'ok'], package: ['Package', 'ok'], open: ['Not yet', 'warn'],
+    not_joined: ['Did not join', 'plain'], upcoming: ['First visit booked', 'plain'], cancelled: ['Cancelled', 'bad'],
+  };
+  dash.draw('nc-tiles', (box) => {
+    const { status, all, w, done } = latestWeek();
+    const list = dash.data('new_client_list');
+    if (!w) { box.textContent = status === 'ok' ? 'Waiting for the first week of numbers.' : '—'; return; }
+    const people = list.status === 'ok' ? list.data : [];
+    const kNew = kpiOf('new_clients'), kConv = kpiOf('conversion'), bNew = kpiBench(kNew), bConv = kpiBench(kConv);
+    const live = !weekDone(w), state = live ? 'In progress' : 'Missed';
+    const upcoming = people.filter((p) => p.outcome === 'upcoming').length;
+    const open = people.filter((p) => p.outcome === 'open');
+    const totalNew = d3.sum(all, (x) => +x.new_clients), totalJoined = d3.sum(all, (x) => +x.joined);
+    const running = totalNew ? (totalJoined / totalNew) * 100 : null;
+    const weekPct = +w.new_clients ? (+w.joined / +w.new_clients) * 100 : null;
+    const soonest = open.length ? d3.min(open, (p) => +p.days_left) : null;
+    box.replaceChildren(
+      goalTile({ label: 'New clients this week', value: int(+w.new_clients), bench: 'Goal: ' + kpiText(kNew, bNew).toLowerCase(), hit: kpiHit(kNew, +w.new_clients, bNew), share: +w.new_clients / bNew, state,
+        detail: upcoming ? `${plural(upcoming, 'more first visit is', 'more first visits are')} already booked.` : 'No first visits on the books yet.' }),
+      goalTile({ label: 'Joined this week', value: weekPct == null ? '—' : pctFmt(weekPct), bench: 'Goal: ' + kpiText(kConv, bConv).toLowerCase(), hit: weekPct != null && kpiHit(kConv, weekPct, bConv), share: weekPct == null ? 0 : weekPct / bConv, state: weekPct == null ? null : state,
+        detail: +w.new_clients ? `${int(+w.joined)} of ${plural(+w.new_clients, 'new client', 'new clients')} bought a membership or package.` : 'No new clients have come in yet this week.' }),
+      goalTile({ label: 'Running conversion', value: running == null ? '—' : pctFmt(running), bench: 'Goal: ' + kpiText(kConv, bConv).toLowerCase(), hit: running != null && kpiHit(kConv, running, bConv), share: running == null ? 0 : running / bConv,
+        detail: totalNew ? `${int(totalJoined)} of ${plural(totalNew, 'new client', 'new clients')} joined over the last ${plural(all.length, 'week', 'weeks')}.` : 'Starts counting with the first new client.' }),
+      goalTile({ label: 'Still deciding', value: int(open.length), bench: 'New clients inside their first 30 days who have not joined',
+        detail: open.length ? `Follow up now: the nearest window closes in ${plural(soonest, 'day', 'days')}.` : 'Nobody is waiting on a follow-up.' }),
+    );
+  });
+
+  dash.draw('nc-list', (tbody) => {
+    const s = dash.data('new_client_list');
+    const note = (text) => { const tr = mk('tr'), td = mk('td', 'vg-hook-empty', text); td.colSpan = 7; tr.append(td); return tr; };
+    if (s.status !== 'ok') { tbody.replaceChildren(note(s.status === 'loading' ? 'Loading…' : 'The client list could not be loaded. Press Refresh to try again.')); return; }
+    if (!s.data.length) { tbody.replaceChildren(note('No new clients have been recorded since live tracking began. Each one appears here as soon as their first visit is booked.')); return; }
+    tbody.replaceChildren(...s.data.map((p) => {
+      const tr = mk('tr');
+      tr.dataset.key = p.client_key;
+      const cell = (label, text, sub) => {
+        const td = mk('td', null, text == null || text === '' ? '—' : text);
+        td.dataset.label = label;
+        if (sub) td.append(mk('span', 'vg-hook-sub', sub));
+        tr.append(td);
+        return td;
+      };
+      const [name, tone] = OUTCOMES[p.outcome] || [sentence(p.outcome), 'plain'];
+      cell('Client', p.client || 'Name not recorded');
+      cell('First visit', shortDay(p.first_date), p.service);
+      cell('Provider', p.provider);
+      cell('Source', p.source);
+      const td = cell('Result', '');
+      td.textContent = '';
+      td.append(mk('span', 'vg-chip vg-chip-' + tone, name));
+      const sub = p.outcome === 'membership' || p.outcome === 'package' ? [p.joined_item, p.joined_on && 'on ' + shortDay(p.joined_on)].filter(Boolean).join(' ')
+        : p.outcome === 'open' ? `${plural(+p.days_left, 'day', 'days')} left to count`
+        : p.outcome === 'upcoming' ? 'Counts once they come in' : '';
+      if (sub) td.append(mk('span', 'vg-hook-sub', sub));
+      cell('Next visit', p.next_visit ? shortDay(p.next_visit) : p.outcome === 'upcoming' || p.outcome === 'cancelled' ? '—' : 'None booked');
+      cell('Spent', money(+p.spend || 0));
+      return tr;
+    }));
+  });
+  dash.draw('nc-list-summary', (elm) => {
+    const s = dash.data('new_client_list');
+    if (s.status !== 'ok' || !s.data.length) { elm.textContent = ''; return; }
+    const joined = s.data.filter((p) => p.outcome === 'membership' || p.outcome === 'package').length;
+    const came = s.data.filter((p) => p.outcome !== 'upcoming' && p.outcome !== 'cancelled').length;
+    elm.textContent = `${plural(s.data.length, 'new client', 'new clients')} · ${int(came)} came in · ${int(joined)} joined`;
+  });
+
+  dash.draw('nc-record', (tbody) => {
+    const { status, all } = latestWeek();
+    if (!all.length) { const tr = mk('tr'), td = mk('td', 'vg-hook-empty', status === 'ok' ? 'No weeks to show yet.' : '—'); td.colSpan = 5; tr.append(td); tbody.replaceChildren(tr); return; }
+    const bench = kpiBench(kpiOf('conversion'));
+    let cumNew = 0, cumJoined = 0;
+    const rows = all.map((w) => {
+      cumNew += +w.new_clients; cumJoined += +w.joined;
+      return { w, pct: +w.new_clients ? (+w.joined / +w.new_clients) * 100 : null, run: cumNew ? (cumJoined / cumNew) * 100 : null, cumNew, cumJoined };
+    }).reverse();
+    tbody.replaceChildren(...rows.map((r) => {
+      const tr = mk('tr');
+      const done = weekDone(r.w);
+      const narrow = (tbody.closest('.vg-scroll') || tbody).clientWidth < 520;
+      tr.append(mk('td', null, done ? (narrow ? '' : 'Week reported ') + weekDay(r.w.report_date || r.w.week_end) : narrow ? 'Now' : 'This week so far'));
+      tr.append(mk('td', null, int(+r.w.new_clients)), mk('td', null, int(+r.w.joined)));
+      tr.append(mk('td', r.pct == null ? null : r.pct > bench ? 'vg-good' : done ? 'vg-bad' : null, r.pct == null ? '—' : pctFmt(r.pct)));
+      const run = mk('td', r.run == null ? null : r.run > bench ? 'vg-good' : null, r.run == null ? '—' : pctFmt(r.run));
+      if (r.run != null) run.append(mk('span', 'vg-hook-sub', `${int(r.cumJoined)} of ${int(r.cumNew)}`));
+      tr.append(run);
       return tr;
     }));
   });

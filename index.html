@@ -115,6 +115,69 @@
     .vg-hooks td:first-child { grid-area: 4 / 2; font-size: var(--cds-font-size-caption); text-align: right; }
     .vg-hooks td.vg-hook-empty { grid-area: 1 / 1 / 2 / 3; text-align: left; font-size: inherit; }
   }
+  .vg-meter-hit span { background: var(--color-ok); }
+  .vg-meter-go span { background: var(--s0); }
+  .vg-score { display: grid; gap: var(--cds-gap-xs); }
+  .vg-score .vg-meter { height: 12px; border-radius: 6px; margin: var(--cds-gap-xs) 0; }
+  .vg-score .vg-meter span { border-radius: 6px; }
+  .vg-sb-big { font-size: 3rem; margin: 0; }
+  .vg-sb-line { margin: 0; line-height: 1.45; }
+  .vg-sb-line b { font-weight: var(--cds-font-weight-medium); }
+  .vg-tiles { display: grid; gap: var(--cds-gap-md); grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); margin-top: var(--cds-gap-md); }
+  .vg-tiles-top { margin-top: 0; }
+  .vg-tiles-top .vg-tile { background: var(--color-panel); }
+  .vg-tile { border: 1px solid var(--color-border-line); border-radius: var(--cds-radius); padding: var(--cds-pad-md); display: grid; gap: 2px; align-content: start; min-width: 0; background: var(--color-bg); }
+  .vg-tile-hit { border-color: var(--color-ok); }
+  .vg-tile-top { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 2px var(--cds-gap-sm); }
+  .vg-tile-top .vg-k { min-width: 0; }
+  .vg-tile-top .vg-chip { flex: none; }
+  .vg-tile-big { font-family: var(--font-anthropic-serif); font-size: 1.9rem; line-height: 1.15; margin: 0; font-variant-numeric: tabular-nums; }
+  .vg-tile-hit .vg-tile-big { color: var(--color-ok); }
+  .vg-chip-ok { color: var(--color-ok); border-color: var(--color-ok); }
+  .vg-chip-warn { color: var(--color-warn); border-color: var(--color-warn); }
+  .vg-chip-bad { color: var(--color-bad); border-color: var(--color-bad); }
+  .vg-people th, .vg-people td { text-align: left; vertical-align: top; }
+  .vg-people td:first-child { font-weight: var(--cds-font-weight-medium); }
+  .vg-people th:last-child, .vg-people td:last-child { text-align: right; padding-right: 0; }
+  .vg-people .vg-chip { display: inline-block; }
+  .vg-people td { white-space: normal; }
+  .vg-people td:nth-child(2), .vg-people td:nth-child(6), .vg-people td:nth-child(7) { white-space: nowrap; }
+  .vg-people .vg-hook-sub, .vg-record .vg-hook-sub { display: block; color: var(--color-fg-muted); font-size: var(--cds-font-size-caption); font-weight: 400; white-space: normal; margin-top: 2px; }
+  .vg-record td:first-child { color: var(--color-fg); }
+  .vg-coach { display: grid; gap: var(--cds-gap-sm); }
+  .vg-coach-name { font-size: var(--cds-font-size-heading); margin: 0; }
+  .vg-coach-sub { margin-top: var(--cds-gap-lg); }
+  .vg-tiles-coach { margin-top: 0; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); }
+  .vg-talk ul { margin: var(--cds-gap-xs) 0 0; padding: 0; list-style: none; display: grid; gap: var(--cds-gap-xs); line-height: 1.45; }
+  .vg-talk li { padding-left: 1.1em; position: relative; }
+  .vg-talk li::before { content: ""; position: absolute; left: 0; top: 0.55em; width: 8px; height: 8px; border-radius: 50%; background: var(--color-fg-muted); }
+  .vg-talk li.vg-talk-ok::before { background: var(--color-ok); }
+  .vg-talk li.vg-talk-bad::before { background: var(--color-bad); }
+  @container (max-width: 600px) {
+    .vg-sb-big { font-size: 2.4rem; }
+    .vg-sb-big small { display: block; white-space: normal; }
+    .vg-tiles { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--cds-gap-sm); }
+    .vg-record th, .vg-record td { padding-left: 4px; padding-right: 4px; white-space: normal; }
+    .vg-record th:first-child, .vg-record td:first-child { padding-left: 0; white-space: nowrap; }
+    .vg-people thead { display: none; }
+    .vg-people tr { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 2px var(--cds-gap-md); padding: var(--cds-pad-md) 0; border-bottom: 1px solid var(--color-border-line); }
+    .vg-people td { border: 0; padding: 0; white-space: normal; min-width: 0; text-align: left; }
+    .vg-people td::before { content: attr(data-label) ": "; color: var(--color-fg-muted); font-size: var(--cds-font-size-caption); }
+    .vg-people td:nth-child(1) { grid-area: 1 / 1; }
+    .vg-people td:nth-child(1)::before, .vg-people td:nth-child(5)::before { content: none; }
+    .vg-people td:nth-child(5) { grid-area: 1 / 2; text-align: right; }
+    .vg-people td:nth-child(2) { grid-area: 2 / 1 / 3 / 3; }
+    .vg-people td:nth-child(3) { grid-area: 3 / 1 / 4 / 3; }
+    .vg-people td:nth-child(4) { grid-area: 4 / 1 / 5 / 3; }
+    .vg-people td:nth-child(6) { grid-area: 5 / 1; }
+    .vg-people td:nth-child(7) { grid-area: 5 / 2; text-align: right; }
+    .vg-people td.vg-hook-empty { grid-area: 1 / 1 / 2 / 3; font-weight: 400; }
+    .vg-people td.vg-hook-empty::before { content: none; }
+    .vg-people .vg-hook-sub { display: inline; }
+    .vg-people td:nth-child(2) .vg-hook-sub::before, .vg-people td:nth-child(5) .vg-hook-sub::before { content: " · "; }
+    .vg-people td:nth-child(5) .vg-hook-sub { display: block; }
+    .vg-people td:nth-child(5) .vg-hook-sub::before { content: none; }
+  }
   .vg-details { color: var(--color-fg-muted); line-height: 1.5; }
   .vg-details summary { cursor: pointer; color: var(--color-fg); }
   .vg-details dl { margin: var(--cds-gap-md) 0 0; display: grid; gap: var(--cds-gap-sm); max-width: 78ch; }
@@ -237,7 +300,7 @@
     <nav class="vg-nav" aria-label="Sections">
       <button type="button" class="vg-nav-item" data-page="scorecard" aria-current="page">KPI Report</button>
       <button type="button" class="vg-nav-item" data-page="actions">Actions</button>
-      <button type="button" class="vg-nav-item" data-page="patients">Patients</button>
+      <button type="button" class="vg-nav-item" data-page="patients">New Clients</button>
       <button type="button" class="vg-nav-item" data-page="members">Members</button>
       <button type="button" class="vg-nav-item" data-page="revenue">Revenue</button>
       <button type="button" class="vg-nav-item" data-page="team">Team</button>
@@ -262,6 +325,7 @@
     <p class="vg-status" id="note-empty" hidden>Waiting for the first Mangomint events.</p>
     <p class="vg-status" id="note-early" hidden>Tracking started recently. Comparisons need two months; action rankings firm up after three.</p>
     <p class="vg-status" id="note-baseline" hidden>Starting member count not entered yet.</p>
+    <div class="vg-card vg-score" id="scoreboard" data-draw="scoreboard" data-source="weekly">—</div>
     <div class="vg-card" id="weekly">
       <div class="vg-row"><h3 class="vg-h3">Weekly KPIs</h3><p class="vg-meta" data-draw="week-summary"></p></div>
       <div class="vg-scroll" data-draw="week-table" data-source="weekly"></div>
@@ -335,9 +399,39 @@
 
   <section class="vg-page" id="patients" hidden>
     <header class="vg-page-head">
-      <h2 class="vg-title">Patients</h2>
+      <h2 class="vg-title">New Clients</h2>
       <p class="vg-meta"><span data-draw="fig" data-source="kpis" data-field="month_label" data-row="0" data-fmt="text">—</span><span class="vg-since" hidden></span></p>
     </header>
+    <div class="vg-tiles vg-tiles-top" id="nc-tiles" data-draw="nc-tiles" data-source="weekly new_client_list">—</div>
+    <div class="vg-card" id="card-nc-list">
+      <div class="vg-row"><h3 class="vg-h3">Every new client, and whether they joined</h3><p class="vg-meta" data-draw="nc-list-summary"></p></div>
+      <div class="vg-scroll">
+        <table class="vg-table vg-people" id="nc-table" data-source="new_client_list" data-row-key="client_key">
+          <thead><tr>
+            <th data-field="client">Client</th>
+            <th data-field="first_date">First visit</th>
+            <th data-field="provider">Provider</th>
+            <th data-field="source">Source</th>
+            <th data-field="outcome">Membership or package</th>
+            <th data-field="next_visit">Next visit</th>
+            <th data-field="spend">Spent</th>
+          </tr></thead>
+          <tbody data-draw="nc-list"></tbody>
+        </table>
+      </div>
+      <p class="vg-note vg-wk-note">A new client counts as joined when they buy a membership or package within 30 days of their first visit. Newest first.</p>
+    </div>
+    <div class="vg-card" id="card-nc-record">
+      <h3 class="vg-h3">Conversion track record</h3>
+      <div class="vg-scroll">
+        <table class="vg-table vg-record" id="nc-record" data-source="weekly">
+          <thead><tr><th>Week</th><th>New</th><th>Joined</th><th>Rate</th><th>Running</th></tr></thead>
+          <tbody data-draw="nc-record"></tbody>
+        </table>
+      </div>
+      <p class="vg-note vg-wk-note">Running is every new client who joined, divided by every new client, up to that week.</p>
+    </div>
+    <h3 class="vg-h3">This month</h3>
     <div class="vg-cards">
       <div class="vg-card" id="np-new">
         <p class="vg-k">New patients</p>
@@ -466,7 +560,7 @@
       </div>
     </div>
     <div class="vg-block" id="provider-weeks">
-      <h3 class="vg-h3">Each provider, week by week</h3>
+      <h3 class="vg-h3">Each provider: where they stand and what to talk about</h3>
       <div class="vg-prov-list" data-draw="provider-weeks" data-source="provider_weekly"></div>
     </div>
     <h3 class="vg-h3">All providers, last 90 days</h3>
@@ -548,6 +642,9 @@
         <dt>Visit</dt><dd>An appointment whose day has arrived and was not cancelled. A sale for an appointment booked before live tracking began counts as a visit on the day it was paid.</dd>
         <dt>Revenue</dt><dd>What clients were charged after discounts, before tax and tips, counted on the day the sale closed.</dd>
         <dt>Live tracking</dt><dd>Numbers come from events Mangomint sends as they happen. Nothing from before the first event is included unless it was entered by hand.</dd>
+        <dt>Still deciding</dt><dd>A new client who has come in, is inside their first 30 days and has not bought a membership or package yet. After 30 days they count as did not join.</dd>
+        <dt>Running conversion</dt><dd>All new clients who joined, divided by all new clients, across the weeks shown.</dd>
+        <dt>Memberships started, by provider</dt><dd>A new membership is credited to the provider the client saw that day or the day before. Monthly dues are not counted as new memberships.</dd>
         <dt>Not included</dt><dd>Costs, profit and ad spend. Mangomint does not send them.</dd>
       </dl>
     </div>

@@ -101,6 +101,7 @@
     window.VG_GOALS = state.raw.goals || {};
     window.VG_TODAY = state.raw.today || null;
     window.VG_SINCE = state.raw.tracking_since || null;
+    window.VG_MEMBER_EVENTS = !!state.raw.membership_events_seen;
     state.status = 'ok';
     keepCode(code);
     showApp();
