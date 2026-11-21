@@ -372,7 +372,7 @@
     { key: 'source_recorded', label: 'New clients with a source recorded', how: 'min', bench: 90, fmt: pctFmt, val: (w) => pctOf(w.new_clients_with_source, w.new_clients) },
     { key: 'online', label: 'Booked online', how: 'min', bench: 40, fmt: pctFmt, val: (w) => pctOf(w.visits_booked_online, w.visits) },
   ];
-  const REPORT_KEYS = ['new_clients', 'conversion', 'rebook', 'revenue']; // the rows on the KPI Report, in the team's order
+  const REPORT_KEYS = ['new_clients', 'conversion', 'rebook', 'revenue']; // the rows on the Scorecard, in the team's order
   const kpiBench = (k) => { const b = ((window.VG_GOALS || {}).weekly || {})[k.key]; return b != null ? +b : k.bench; }; // a saved benchmark wins over the default
   const kpiText = (k, b) => (b == null ? '—' : k.how === 'above' ? 'Above ' + k.fmt(b) : k.fmt(b) + (k.how === 'max' ? ' or less' : ' or more'));
   const kpiHit = (k, v, b) => (k.how === 'above' ? v > b : k.how === 'max' ? v <= b : v >= b);
@@ -781,7 +781,6 @@
   // ---------- the levers the team is asked to pull: weekly scoreboard, new clients, provider coaching ----------
 
   const mk = (tag, cls, text) => { const n = document.createElement(tag); if (cls) n.className = cls; if (text != null) n.textContent = text; return n; };
-  const dayNum = (iso) => parseMonth(iso) / 864e5;
   const shortDay = (iso) => d3.utcFormat('%b %-d')(parseMonth(iso));
   const kpiOf = (key) => ALL_KPIS.find((k) => k.key === key);
   const plural = (n, one, many) => `${int(n)} ${n === 1 ? one : many}`;
@@ -809,48 +808,16 @@
     return { status: s.status, all, w: all[all.length - 1], done: all.filter(weekDone) };
   };
 
+  // the card at the top of the Scorecard: this week's total revenue and nothing else
   dash.draw('scoreboard', (box) => {
-    const { status, all, w, done } = latestWeek();
+    const { status, w } = latestWeek();
     if (!w) { box.textContent = status === 'ok' ? 'Waiting for the first week of numbers.' : '—'; return; }
-    const live = !weekDone(w), last = done[done.length - 1];
-    const goal = kpiBench(kpiOf('revenue')), rev = +w.revenue, hit = kpiHit(kpiOf('revenue'), rev, goal);
-    const daysLeft = live ? Math.max(1, dayNum(w.week_end) - dayNum(window.VG_TODAY || w.week_end) + 1) : 0;
-
+    const live = !weekDone(w);
     const head = mk('div', 'vg-row');
-    head.append(mk('h3', 'vg-h3', live ? 'This week' : 'Latest week'),
-      mk('p', 'vg-meta', `${shortDay(w.week_start)} to ${shortDay(w.week_end)}` + (live ? ` · ${plural(daysLeft, 'day', 'days')} left` : '')));
-
+    head.append(mk('h3', 'vg-h3', live ? 'This week' : 'Latest week'), mk('p', 'vg-meta', `${shortDay(w.week_start)} to ${shortDay(w.week_end)}`));
     const big = mk('p', 'vg-big vg-sb-big');
-    big.append(mk('span', hit ? 'vg-good' : null, money(rev)), mk('small', null, ` of ${money(goal)} weekly revenue goal`));
-    const line = mk('p', 'vg-sb-line');
-    if (hit) line.append(mk('b', 'vg-good', 'Goal reached'), document.createTextNode(` · ${money(rev - goal)} over`));
-    else {
-      line.append(mk('b', null, `${money(goal - rev)} to go`));
-      if (live) line.append(document.createTextNode(` · that is ${money((goal - rev) / daysLeft)} a day for the ${daysLeft === 1 ? 'last day' : daysLeft + ' days left'}`));
-    }
-    const atGoal = done.filter((x) => +x.revenue >= goal).length;
-    let streak = 0; for (let i = done.length - 1; i >= 0 && +done[i].revenue >= goal; i--) streak++;
-    const sub = mk('p', 'vg-note', last
-      ? `Last week closed at ${money(+last.revenue)}` + (live && rev > +last.revenue ? ', and this week is already ahead of it' : '')
-        + ` · ${int(atGoal)} of ${plural(done.length, 'finished week', 'finished weeks')} at ${money(goal)}` + (streak > 1 ? ` · ${streak} in a row` : '')
-      : 'This is the first tracked week.');
-
-    const prev = all[all.length - 2];
-    const state = live ? 'In progress' : 'Missed';
-    const tile = (key, label, detail) => {
-      const k = kpiOf(key), b = kpiBench(k), v = kpiVal(k, w, prev);
-      const ok = v != null && b != null && kpiHit(k, v, b);
-      return goalTile({ label, value: v == null ? '—' : k.fmt(v), bench: 'Goal: ' + kpiText(k, b).toLowerCase(), hit: ok, share: v == null || !b ? 0 : v / b, detail: detail(v, b, ok), state: v == null ? null : state });
-    };
-    const need = (v, b, how) => Math.max(0, (how === 'above' ? Math.floor(b) + 1 : Math.ceil(b)) - v);
-    const tiles = mk('div', 'vg-tiles');
-    tiles.append(
-      tile('new_clients', 'New clients showed', (v, b, ok) => (ok ? 'Goal reached for the week.' : `${plural(need(v, b, 'above'), 'more new client', 'more new clients')} to hit it.`)),
-      tile('conversion', 'New clients who joined', () => (+w.new_clients ? `${int(+w.joined)} of ${plural(+w.new_clients, 'new client', 'new clients')} bought a membership or package.` : 'No new clients have come in yet this week.')),
-      tile('rebook', 'Rebook rate', () => (+w.visits ? `${int(+w.visits_rebooked)} of ${plural(+w.visits, 'visit', 'visits')} left with a next visit booked.` : 'No visits yet this week.')),
-      tile('packages', 'Packages sold', (v, b, ok) => (ok ? 'Goal reached for the week.' : `${plural(need(v, b, 'min'), 'more package', 'more packages')} to hit it.`)),
-    );
-    box.replaceChildren(head, big, meter(rev / goal, hit), line, sub, tiles);
+    big.append(mk('span', null, money(+w.revenue)), mk('small', null, ' total revenue'));
+    box.replaceChildren(head, big);
   });
 
   // ---------- new clients: who they are and whether they joined ----------
