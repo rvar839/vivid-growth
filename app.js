@@ -399,7 +399,7 @@
     kpis.forEach((k) => {
       const tr = node('tr'), bench = kpiBench(k), benchText = kpiText(k, bench);
       if (ranked) tr.append(node('td', 'vg-rankcol', String(ALL_KPIS.indexOf(k) + 1)));
-      const name = node('th', null, k.label.replace('/', '/\u200b')); // lets a long label wrap after the slash
+      const name = node('th', null, k.label.replace('/', '/\u200b').replace(' %', '\u00a0%')); // lets a long label wrap after the slash
       if (narrow) name.append(node('span', 'vg-bench-under', benchText));
       tr.append(name);
       if (!narrow) tr.append(node('td', 'vg-bench', benchText));
@@ -500,7 +500,7 @@
       const tbody = node('tbody');
       for (const k of PROVIDER_KPIS) {
         const tr = node('tr'), bench = k.bench(), benchText = kpiText(k, bench);
-        const label = node('th', null, k.label.replace('/', '/\u200b')); // lets a long label wrap after the slash
+        const label = node('th', null, k.label.replace('/', '/\u200b').replace(' %', '\u00a0%')); // lets a long label wrap after the slash
         if (narrow && bench != null) label.append(node('span', 'vg-bench-under', benchText));
         tr.append(label);
         if (!narrow) tr.append(node('td', 'vg-bench', benchText));
@@ -983,11 +983,18 @@
     });
     const shown = all.find((p) => p.id === id);
     new Set([...shown.querySelectorAll('[data-draw]')].map((e) => e.dataset.draw)).forEach((name) => dash.draw(name));
+    // on a phone the sections are a row of pills that scrolls sideways: keep the chosen one in view
+    const nav = document.querySelector('.vg-nav'), act = nav && nav.querySelector('[aria-current]');
+    if (act && nav.scrollWidth > nav.clientWidth) {
+      const n = nav.getBoundingClientRect(), a = act.getBoundingClientRect();
+      nav.scrollLeft += a.left - n.left - (n.width - a.width) / 2;
+    }
     if (link) dash.setLink(id);
   }
   document.querySelectorAll('[data-page], [data-go]').forEach((b) => {
     b.addEventListener('click', () => {
       go(b.dataset.page || b.dataset.go, true);
+      if (b.dataset.page && window.matchMedia('(max-width: 760px)').matches) window.scrollTo(0, 0); // a new section starts at its top
       const top = document.querySelector('.vg-main');
       if (top && b.dataset.go) top.scrollIntoView({ block: 'start' });
     });

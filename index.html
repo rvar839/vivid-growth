@@ -2,7 +2,9 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#fbfaf8" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#15121d" media="(prefers-color-scheme: dark)">
 <meta name="robots" content="noindex, nofollow">
 <title>Vivid Centre Growth</title>
 <style>
@@ -275,6 +277,51 @@
     .vg-goal-now { grid-row: span 2; }
     .vg-goal-bar { grid-column: 1 / -1; }
     .vg-chip { justify-self: start; grid-column: 1 / -1; }
+  }
+  /* ---------- phones: a compact header, a row of section pills that stays on screen, and tighter cards and tables ---------- */
+  html { -webkit-text-size-adjust: 100%; }
+  @media (max-width: 600px) {
+    body { padding: 0 max(14px, env(safe-area-inset-right)) calc(24px + env(safe-area-inset-bottom)) max(14px, env(safe-area-inset-left)); }
+    .vg-login { min-height: calc(100dvh - 24px); }
+    .vg-login input { font-size: 16px; } /* below 16px an iPhone zooms the page when the field is tapped */
+    .vg-btn { min-height: 46px; }
+  }
+  @container (max-width: 620px) {
+    .vg-app { gap: 14px; }
+    .vg-side { position: sticky; top: -62px; z-index: 5; background: var(--color-bg); grid-template-columns: minmax(0, 1fr) auto auto auto; grid-template-rows: 56px auto; align-items: center; gap: 0 6px; margin: 0 -14px; padding: 6px 14px 10px; }
+    .vg-side .vg-brand { grid-area: 1 / 1; align-self: start; justify-items: start; padding-top: 2px; }
+    .vg-side .vg-brand .vg-logo { width: 92px; }
+    .vg-side .vg-brand-sub { display: none; }
+    .vg-side-foot { display: contents; }
+    .vg-side-foot p { grid-area: 1 / 1; align-self: end; padding: 0; font-size: 11px; white-space: nowrap; }
+    .vg-side-foot .vg-foot-link { grid-area: 1 / 2; padding: 8px 6px; }
+    #refresh { grid-area: 1 / 3; }
+    #signout { grid-area: 1 / 4; }
+    .vg-side .vg-link { min-height: 34px; padding: 0 12px; }
+    .vg-nav { grid-area: 2 / 1 / 3 / -1; margin: 0 -14px; padding: 2px 14px; gap: 6px; scrollbar-width: none; -webkit-overflow-scrolling: touch; }
+    .vg-nav::-webkit-scrollbar { display: none; }
+    .vg-nav-item { flex: none; min-height: 36px; padding: 0 14px; border-radius: 999px; border: 1px solid var(--color-border-line); background: var(--color-panel); }
+    .vg-nav-item[aria-current] { background: var(--color-fg); border-color: var(--color-fg); color: var(--color-bg); box-shadow: none; }
+
+    .vg-page { gap: 14px; }
+    .vg-page-head .vg-title { font-size: 22px; }
+    .vg-card { padding: 14px; }
+    .vg-cards, .vg-tiles, .vg-tiles-coach { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+    .vg-cards > :last-child:nth-child(odd), .vg-tiles > :last-child:nth-child(odd) { grid-column: 1 / -1; }
+    .vg-two, .vg-levers { grid-template-columns: minmax(0, 1fr); gap: 14px; }
+    .vg-big { font-size: 1.75rem; }
+    .vg-sb-big { font-size: 2.5rem; }
+    .vg-tile-big { font-size: 1.6rem; }
+    .vg-row { gap: 2px var(--cds-gap-sm); }
+    #chart-week-revenue { min-height: 250px; }
+
+    .vg-wk th, .vg-wk td { padding: 10px 6px; }
+    .vg-wk tbody th { overflow-wrap: normal; font-size: 13.5px; line-height: 1.3; width: 44%; }
+    .vg-wk td.vg-val { font-size: 15px; }
+    .vg-wk-ranked td.vg-val, .vg-wk-compact td.vg-val { font-size: 13.5px; }
+    .vg-wk-ranked th, .vg-wk-ranked td, .vg-wk-compact th, .vg-wk-compact td { padding: 9px 5px; }
+    .vg-wk td:last-child, .vg-wk thead th:last-child { padding-right: 8px; }
+    .vg-bench-under { margin-top: 2px; }
   }
 </style>
 </head>
