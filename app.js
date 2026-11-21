@@ -820,6 +820,63 @@
     box.replaceChildren(head, big);
   });
 
+  // ---------- actions: the three benchmarks missed last week that matter most, and one thing to do about each ----------
+
+  // one short instruction per KPI; revenue and its growth are results of the others, so they are never a flag
+  const PLAYS = {
+    new_clients: 'Ask every happy client for a review and a referral.',
+    conversion: 'Offer a membership or package at every first checkout.',
+    rebook: 'Book the next visit before the client leaves the room.',
+    net_members: 'Offer membership to every regular who is not a member.',
+    visits: 'Text clients not seen in 60 days to fill open slots.',
+    avg_spend: 'Recommend one add-on or product at every visit.',
+    next_week_booked: 'Call overdue clients to fill next week\'s open slots.',
+    cancel_rate: 'Confirm every appointment two days ahead.',
+    new_rebook: 'Book each new client\'s second visit at checkout.',
+    member_cancels: 'Call each cancelling member the same day; offer a pause.',
+    product_attach: 'Recommend one take-home product at every visit.',
+    packages: 'Offer a series for any treatment needing several visits.',
+    discount_rate: 'Give discounts only on approved offers.',
+    source_recorded: 'Ask every new client how they found us, and record it.',
+    online: 'Put the booking link in every text and email.',
+  };
+  const redFlags = () => {
+    const { status, all, done } = latestWeek();
+    const last = done[done.length - 1];
+    if (!last) return { status, last: null, flags: [] };
+    const prev = all[all.indexOf(last) - 1];
+    const flags = ALL_KPIS.filter((k) => PLAYS[k.key]) // already in ranked order
+      .map((k) => ({ k, v: kpiVal(k, last, prev), b: kpiBench(k) }))
+      .filter((x) => x.v != null && x.b != null && !kpiHit(x.k, x.v, x.b))
+      .slice(0, 3);
+    return { status, last, flags };
+  };
+  const actList = (cls, items) => { const ol = mk('ol', 'vg-acts' + (cls ? ' ' + cls : '')); ol.append(...items); return ol; };
+  dash.draw('act-meta', (el) => {
+    const { last } = redFlags();
+    el.textContent = last ? `From the week reported ${weekDay(last.report_date || last.week_end)}` : '';
+  });
+  dash.draw('act-flags', (box) => {
+    const { status, last, flags } = redFlags();
+    if (!last) { box.replaceChildren(mk('p', 'vg-act-none', status === 'ok' ? 'Waiting for the first finished week.' : '—')); return; }
+    if (!flags.length) { box.replaceChildren(mk('p', 'vg-act-none', 'No red flags. Every benchmark was hit.')); return; }
+    box.replaceChildren(actList('', flags.map((f, i) => {
+      const li = mk('li');
+      li.append(mk('span', 'vg-act-n', String(i + 1)), mk('span', 'vg-act-name', f.k.label), mk('span', 'vg-act-val', f.k.fmt(f.v)), mk('span', 'vg-act-sub', 'Benchmark: ' + kpiText(f.k, f.b).toLowerCase()));
+      return li;
+    })));
+  });
+  dash.draw('act-plan', (box) => {
+    const { status, last, flags } = redFlags();
+    if (!last) { box.replaceChildren(mk('p', 'vg-act-none', status === 'ok' ? 'Waiting for the first finished week.' : '—')); return; }
+    if (!flags.length) { box.replaceChildren(mk('p', 'vg-act-none', 'Keep doing what worked last week.')); return; }
+    box.replaceChildren(actList('vg-acts-plan', flags.map((f, i) => {
+      const li = mk('li');
+      li.append(mk('span', 'vg-act-n', String(i + 1)), mk('span', 'vg-act-name', PLAYS[f.k.key]));
+      return li;
+    })));
+  });
+
   // ---------- new clients: who they are and whether they joined ----------
 
   const OUTCOMES = {
@@ -1027,21 +1084,5 @@
     });
     const early = document.getElementById('note-early');
     if (early && recent) early.textContent = `Live tracking began ${sinceText}. This week and this month only count from that day, so they will look low until a full period is in. Earlier weeks come from your sheet.`;
-
-    const s = dash.data('levers');
-    if (s.status !== 'ok') return;
-    const thin = !s.data.length || s.data[0].thin;
-    const n = s.data.length ? s.data[0].visits : 0;
-    const tooEarly = document.getElementById('note-levers');
-    if (tooEarly) {
-      tooEarly.hidden = !thin;
-      tooEarly.textContent = `Too early to put a dollar value on these: ${int(n)} ${n === 1 ? 'visit has' : 'visits have'} been tracked so far. Values and rankings appear once ${MIN_VISITS_TO_RANK} visits are in. The actions themselves still apply.`;
-    }
-    document.querySelectorAll('[data-lever] .vg-impact, [data-lever] .vg-why, [data-lever] .vg-rank').forEach((e) => { e.hidden = thin; });
-    document.querySelectorAll('.vg-levers-meta').forEach((e) => { e.textContent = thin ? 'Four levers that grow a medspa. Values appear once enough visits are tracked.' : 'Ranked by estimated yearly value, from the last three months.'; });
-    document.querySelectorAll('[data-lever]').forEach((card) => {
-      const row = s.data.find((r) => r.lever === card.dataset.lever);
-      card.style.order = row && !thin ? row.rank : '';
-    });
   });
 })();

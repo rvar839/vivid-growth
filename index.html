@@ -323,6 +323,17 @@
     .vg-wk td:last-child, .vg-wk thead th:last-child { padding-right: 8px; }
     .vg-bench-under { margin-top: 2px; }
   }
+  .vg-acts { list-style: none; margin: var(--cds-gap-sm) 0 0; padding: 0; display: grid; }
+  .vg-acts li { display: grid; grid-template-columns: 28px minmax(0, 1fr) auto; align-items: center; gap: 2px var(--cds-gap-md); padding: var(--cds-pad-md) 0; border-bottom: 1px solid var(--color-border-line); }
+  .vg-acts li:last-child { border-bottom: 0; padding-bottom: 0; }
+  .vg-act-n { grid-row: span 2; align-self: start; width: 28px; height: 28px; border-radius: 50%; display: grid; place-items: center; font-weight: var(--cds-font-weight-medium); font-size: var(--cds-font-size-caption); background: var(--color-bg); border: 1px solid var(--color-border-line); }
+  .vg-act-name { font-weight: var(--cds-font-weight-medium); line-height: 1.3; }
+  .vg-act-val { grid-row: span 2; font-family: var(--font-anthropic-serif); font-size: 1.5rem; color: var(--color-bad); font-variant-numeric: tabular-nums; }
+  .vg-act-sub { grid-column: 2; color: var(--color-fg-muted); font-size: var(--cds-font-size-caption); }
+  .vg-acts-plan li { grid-template-columns: 28px minmax(0, 1fr); }
+  .vg-acts-plan .vg-act-n { grid-row: auto; align-self: center; }
+  .vg-acts-plan .vg-act-name { font-weight: 400; font-size: var(--cds-font-size-heading); }
+  .vg-act-none { margin: var(--cds-gap-sm) 0 0; color: var(--color-fg-muted); }
 </style>
 </head>
 <body>
@@ -389,58 +400,15 @@
   <section class="vg-page" id="actions" hidden>
     <header class="vg-page-head">
       <h2 class="vg-title">Actions</h2>
-      <p class="vg-meta vg-levers-meta">Ranked by estimated yearly value, from the last three months.</p>
+      <p class="vg-meta" data-draw="act-meta"></p>
     </header>
-    <p class="vg-status" id="note-levers" hidden></p>
-    <div class="vg-levers">
-      <article class="vg-card vg-lever" data-lever="new_patients" id="lever-new-patients">
-        <p class="vg-rank">Lever <span data-draw="fig" data-source="levers" data-field="rank" data-where="lever=new_patients">—</span></p>
-        <h3>Bring in more new patients</h3>
-        <p class="vg-impact"><b data-draw="fig" data-source="levers" data-field="impact" data-where="lever=new_patients" data-fmt="money">—</b> a year</p>
-        <p class="vg-why">What <span data-draw="fig" data-source="levers" data-field="add_per_month" data-where="lever=new_patients">—</span> extra new patients a month are worth, from their visits plus the share who join at today's rate.</p>
-        <span class="vg-do">Do this</span>
-        <ul>
-          <li>Ask every happy client for a Google review at checkout.</li>
-          <li>Give each client a referral link with credit for both sides.</li>
-          <li>Run one ad per top treatment, each to its own landing page.</li>
-        </ul>
-      </article>
-      <article class="vg-card vg-lever" data-lever="rebook" id="lever-rebook">
-        <p class="vg-rank">Lever <span data-draw="fig" data-source="levers" data-field="rank" data-where="lever=rebook">—</span></p>
-        <h3>Rebook before they leave</h3>
-        <p class="vg-impact"><b data-draw="fig" data-source="levers" data-field="impact" data-where="lever=rebook" data-fmt="money">—</b> a year</p>
-        <p class="vg-why"><span data-draw="fig" data-source="levers" data-field="top_provider" data-where="lever=rebook" data-fmt="text">—</span> rebooks <span data-draw="fig" data-source="levers" data-field="top_pct" data-where="lever=rebook" data-fmt="pct">—</span> of visits against a clinic rate of <span data-draw="fig" data-source="levers" data-field="clinic_pct" data-where="lever=rebook" data-fmt="pct">—</span>. If everyone closed half that gap, it adds about <span data-draw="fig" data-source="levers" data-field="extra_visits" data-where="lever=rebook">—</span> visits a year.</p>
-        <span class="vg-do">Do this</span>
-        <ul>
-          <li>Have your top rebooker show the team how they close a visit.</li>
-          <li>Book the next visit in the room, before the front desk.</li>
-          <li>Text anyone who left without a booking two days later.</li>
-        </ul>
-      </article>
-      <article class="vg-card vg-lever" data-lever="conversion" id="lever-conversion">
-        <p class="vg-rank">Lever <span data-draw="fig" data-source="levers" data-field="rank" data-where="lever=conversion">—</span></p>
-        <h3>Convert new clients to members</h3>
-        <p class="vg-impact"><b data-draw="fig" data-source="levers" data-field="impact" data-where="lever=conversion" data-fmt="money">—</b> a year</p>
-        <p class="vg-why">New clients join at <span data-draw="fig" data-source="levers" data-field="current_pct" data-where="lever=conversion" data-fmt="pct">—</span> over the last three months. Reaching <span data-draw="goal" data-goal="conv">—</span> means <span data-draw="fig" data-source="levers" data-field="extra_per_month" data-where="lever=conversion" data-fmt="dec1">—</span> more joiners every month.</p>
-        <span class="vg-do">Do this</span>
-        <ul>
-          <li>Show the member price beside the standard price at every first checkout.</li>
-          <li>Give providers one line to offer membership during the consult.</li>
-          <li>Follow up within 48 hours with a first-month offer.</li>
-        </ul>
-      </article>
-      <article class="vg-card vg-lever" data-lever="retention" id="lever-retention">
-        <p class="vg-rank">Lever <span data-draw="fig" data-source="levers" data-field="rank" data-where="lever=retention">—</span></p>
-        <h3>Keep the members you have</h3>
-        <p class="vg-impact"><b data-draw="fig" data-source="levers" data-field="impact" data-where="lever=retention" data-fmt="money">—</b> a year</p>
-        <p class="vg-why">About <span data-draw="fig" data-source="levers" data-field="cancels_per_month" data-where="lever=retention" data-fmt="dec1">—</span> members cancel each month. Saving half of them keeps <span data-draw="fig" data-source="levers" data-field="saved_per_month" data-where="lever=retention" data-fmt="dec1">—</span> more a month.</p>
-        <span class="vg-do">Do this</span>
-        <ul>
-          <li>Call or text every member the day a cancel request comes in.</li>
-          <li>Offer a pause or a lower tier before a cancel.</li>
-          <li>Check in with members who have not visited in 60 days.</li>
-        </ul>
-      </article>
+    <div class="vg-card">
+      <h3 class="vg-h3">Top 3 red flags</h3>
+      <div data-draw="act-flags" data-source="weekly">—</div>
+    </div>
+    <div class="vg-card">
+      <h3 class="vg-h3">This week's plan</h3>
+      <div data-draw="act-plan" data-source="weekly">—</div>
     </div>
   </section>
 
@@ -685,7 +653,7 @@
         <dt>Lowest provider rebook rate</dt><dd>The lowest rebook rate among providers with at least five visits that week.</dd>
         <dt>Provider numbers</dt><dd>Sales are credited to the provider on the sale line. A new client's membership or package is credited to the provider of their first visit.</dd>
         <dt>Dashes in a week</dt><dd>The number could not be worked out for that week, for example a rate with no visits, or a week typed in from the earlier sheet.</dd>
-        <dt>Yearly value of a lever</dt><dd>An estimate from the last three months, for ranking levers against each other. Not a forecast.</dd>
+        <dt>Red flag</dt><dd>A weekly KPI that missed its benchmark in the last finished week. The Actions page shows the three that matter most, in the same order as the Misc page, each with one thing to do about it.</dd>
         <dt>Visit</dt><dd>An appointment whose day has arrived and was not cancelled. A sale for an appointment booked before live tracking began counts as a visit on the day it was paid.</dd>
         <dt>Revenue</dt><dd>What clients were charged after discounts, before tax and tips, counted on the day the sale closed.</dd>
         <dt>Live tracking</dt><dd>Numbers come from events Mangomint sends as they happen. Nothing from before the first event is included unless it was entered by hand.</dd>
