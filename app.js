@@ -392,7 +392,7 @@
     const head = node('tr');
     if (ranked) head.append(node('td', 'vg-rankcol', '#'));
     head.append(node('th', null, 'KPI'));
-    if (!narrow) head.append(node('th', null, 'Benchmark'));
+    if (!narrow) head.append(node('th', 'vg-bench-head', 'Benchmark'));
     for (const w of weeks) head.append(node('th', weekDone(w) ? null : 'vg-now', weekDone(w) ? weekDay(w.report_date || w.week_end) : narrow ? 'Now' : 'This week'));
     const thead = node('thead'); thead.append(head);
     const tbody = node('tbody');
@@ -414,6 +414,11 @@
     });
     table.append(thead, tbody);
     el.replaceChildren(table);
+    // on the Scorecard the benchmark stays put beside the KPI name when the weeks scroll sideways
+    if (!ranked && !narrow) {
+      const first = table.querySelector('thead th:first-child').getBoundingClientRect().width;
+      table.querySelectorAll('.vg-bench-head, td.vg-bench').forEach((c) => { c.classList.add('vg-frozen'); c.style.left = first + 'px'; });
+    }
   }
   function weekSummary(el, kpis) {
     const s = dash.data('weekly');
